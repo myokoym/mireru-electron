@@ -1,10 +1,68 @@
-<img src=".erb/img/erb-banner.svg" width="100%" />
+# Mireru - Image Explorer
 
-<br>
+A keyboard-friendly image file explorer built with Electron and React.
 
-<p>
-  Electron React Boilerplate uses <a href="https://electron.atom.io/">Electron</a>, <a href="https://facebook.github.io/react/">React</a>, <a href="https://github.com/reactjs/react-router">React Router</a>, <a href="https://webpack.js.org/">Webpack</a> and <a href="https://www.npmjs.com/package/react-refresh">React Fast Refresh</a>.
-</p>
+## Features
+
+- 🖼️ **Image-focused**: Only displays image files (jpg, png, gif, bmp, webp, svg)
+- ⌨️ **Keyboard navigation**: vim-like controls (j/k for navigation)
+- 📁 **Folder browsing**: Navigate through directories to find images
+- 🔍 **Real-time preview**: Automatic image preview with zoom controls
+- 🎯 **Minimalist UI**: Clean, distraction-free interface
+
+## Development
+
+### WSL2 Development (Windows)
+
+For Windows users developing in WSL2, you'll need to install Electron with Windows platform support:
+
+```bash
+# Install Electron for Windows platform
+npm install --save-dev electron --platform=win32
+
+# Start development server for Windows
+npm run start:win32
+```
+
+### Standard Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+```
+
+## Building
+
+### Windows Build (from WSL2)
+
+```bash
+# Build Windows installer and portable
+npm run build:win32
+
+# Build Windows portable only
+npm run package:win32
+```
+
+### Standard Build
+
+```bash
+# Build for current platform
+npm run build
+```
+
+## Keyboard Shortcuts
+
+- `j/k` or `↑/↓` - Navigate up/down
+- `Enter` - Open folder or preview image
+- `Space` - Preview image only
+- `+/-` - Zoom in/out
+- `f` - Fit to window
+- `o` - Original size
+- `Backspace` - Go up one level
+- `Home` - Go to home directory
 
 <br>
 

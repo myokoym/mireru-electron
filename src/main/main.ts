@@ -12,6 +12,8 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import fs from 'fs';
+import os from 'os';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
@@ -24,6 +26,84 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+
+// File system operations for image explorer
+ipcMain.handle('get-directory-contents', async (event, dirPath: string) => {
+  try {
+    const items = fs.readdirSync(dirPath, { withFileTypes: true, encoding: 'utf8' });
+    const result = [];
+    
+    for (const item of items) {
+      const fullPath = path.join(dirPath, item.name);
+      let stat;
+      
+      try {
+        stat = fs.statSync(fullPath);
+      } catch (err) {
+        continue; // Skip inaccessible files
+      }
+      
+      result.push({
+        name: item.name,
+        path: fullPath,
+        isDirectory: item.isDirectory(),
+        isFile: item.isFile(),
+        size: stat.size,
+        modified: stat.mtime,
+        extension: path.extname(item.name).toLowerCase()
+      });
+    }
+    
+    // Sort directories first, then files by name with proper Japanese locale
+    result.sort((a, b) => {
+      if (a.isDirectory && !b.isDirectory) return -1;
+      if (!a.isDirectory && b.isDirectory) return 1;
+      return a.name.localeCompare(b.name, 'ja', { numeric: true });
+    });
+    
+    return result;
+  } catch (error) {
+    throw new Error(`Failed to read directory: ${error.message}`);
+  }
+});
+
+ipcMain.handle('read-file', async (event, filePath: string) => {
+  try {
+    const stat = fs.statSync(filePath);
+    const ext = path.extname(filePath).toLowerCase();
+    
+    // File size limit (10MB)
+    if (stat.size > 10 * 1024 * 1024) {
+      throw new Error('File too large');
+    }
+    
+    if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'].includes(ext)) {
+      // Image file
+      const buffer = fs.readFileSync(filePath);
+      const base64 = buffer.toString('base64');
+      const mimeType = ext === '.svg' ? 'svg+xml' : ext.slice(1);
+      return { 
+        type: 'image', 
+        content: `data:image/${mimeType};base64,${base64}`, 
+        size: stat.size 
+      };
+    } else {
+      // Other files (not needed for image explorer, but keeping for compatibility)
+      return { type: 'text', content: 'Not an image file', size: stat.size };
+    }
+  } catch (error) {
+    throw new Error(`Failed to read file: ${error.message}`);
+  }
+});
+
+ipcMain.handle('get-home-directory', () => {
+  return os.homedir();
+});
+
+ipcMain.handle('get-parent-directory', (event, currentPath: string) => {
+  const parent = path.dirname(currentPath);
+  return parent !== currentPath ? parent : null;
+});
 
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
@@ -75,6 +155,8 @@ const createWindow = async () => {
     height: 728,
     icon: getAssetPath('icon.png'),
     webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),

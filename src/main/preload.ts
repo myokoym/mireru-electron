@@ -24,6 +24,19 @@ const electronHandler = {
   },
 };
 
+// API for image explorer
+const electronAPI = {
+  getDirectoryContents: (dirPath: string) => 
+    ipcRenderer.invoke('get-directory-contents', dirPath),
+  readFile: (filePath: string) => 
+    ipcRenderer.invoke('read-file', filePath),
+  getHomeDirectory: () => 
+    ipcRenderer.invoke('get-home-directory'),
+  getParentDirectory: (currentPath: string) => 
+    ipcRenderer.invoke('get-parent-directory', currentPath),
+};
+
 contextBridge.exposeInMainWorld('electron', electronHandler);
+contextBridge.exposeInMainWorld('electronAPI', electronAPI);
 
 export type ElectronHandler = typeof electronHandler;

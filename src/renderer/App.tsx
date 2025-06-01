@@ -1,50 +1,294 @@
-import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import icon from '../../assets/icon.svg';
+import { useState, useEffect, useCallback } from 'react';
 import './App.css';
 
-function Hello() {
+interface FileItem {
+  name: string;
+  path: string;
+  isDirectory: boolean;
+  isFile: boolean;
+  size: number;
+  modified: Date;
+  extension: string;
+}
+
+interface FileResult {
+  type: 'text' | 'image' | 'hex';
+  content: string;
+  size: number;
+}
+
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+
+function ImageExplorer() {
+  const [currentPath, setCurrentPath] = useState<string>('');
+  const [files, setFiles] = useState<FileItem[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [currentScale, setCurrentScale] = useState<number>(1);
+  const [status, setStatus] = useState<string>('Initializing...');
+  const [previewContent, setPreviewContent] = useState<string | null>(null);
+
+  // 画像ファイルのみをフィルタリング
+  const imageFiles = files.filter(file => 
+    file.isFile && IMAGE_EXTENSIONS.includes(file.extension.toLowerCase())
+  );
+
+  // 初期化
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        const homePath = await window.electronAPI.getHomeDirectory();
+        setCurrentPath(homePath);
+        await loadDirectory(homePath);
+        setStatus('Ready');
+      } catch (error) {
+        setStatus(`Error: ${error.message}`);
+      }
+    };
+    initializeApp();
+  }, []);
+
+  // ディレクトリの読み込み
+  const loadDirectory = async (path: string) => {
+    try {
+      setStatus('Loading...');
+      const items = await window.electronAPI.getDirectoryContents(path);
+      setFiles(items);
+      setSelectedIndex(0);
+      setPreviewContent(null);
+      setCurrentPath(path);
+      setStatus('Ready');
+    } catch (error) {
+      setStatus(`Error: ${error.message}`);
+    }
+  };
+
+  // ファイルプレビュー
+  const previewFile = async (file: FileItem) => {
+    if (!file.isFile || !IMAGE_EXTENSIONS.includes(file.extension.toLowerCase())) {
+      setPreviewContent(null);
+      return;
+    }
+
+    try {
+      setStatus('Loading preview...');
+      const result: FileResult = await window.electronAPI.readFile(file.path);
+      if (result.type === 'image') {
+        setPreviewContent(result.content);
+        setCurrentScale(1);
+      } else {
+        setPreviewContent(null);
+      }
+      setStatus(`Preview: ${file.name}`);
+    } catch (error) {
+      setPreviewContent(null);
+      setStatus(`Preview error: ${error.message}`);
+    }
+  };
+
+  // ファイルサイズの書式設定
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  // キーボード操作
+  const handleKeyPress = useCallback((event: KeyboardEvent) => {
+    switch (event.key) {
+      case 'j':
+      case 'ArrowDown':
+        event.preventDefault();
+        setSelectedIndex(prev => Math.min(imageFiles.length - 1, prev + 1));
+        break;
+      
+      case 'k':
+      case 'ArrowUp':
+        event.preventDefault();
+        setSelectedIndex(prev => Math.max(0, prev - 1));
+        break;
+      
+      case 'G':
+        event.preventDefault();
+        setSelectedIndex(imageFiles.length - 1);
+        break;
+      
+      case 'g':
+        if (event.ctrlKey) {
+          event.preventDefault();
+          setSelectedIndex(0);
+        }
+        break;
+      
+      case ' ':
+        event.preventDefault();
+        if (imageFiles[selectedIndex]) {
+          previewFile(imageFiles[selectedIndex]);
+        }
+        break;
+      
+      case 'Enter':
+        event.preventDefault();
+        if (imageFiles[selectedIndex]) {
+          previewFile(imageFiles[selectedIndex]);
+        }
+        break;
+      
+      case 'Backspace':
+        event.preventDefault();
+        goUp();
+        break;
+      
+      case 'Home':
+        event.preventDefault();
+        goHome();
+        break;
+      
+      case '+':
+      case '=':
+        event.preventDefault();
+        setCurrentScale(prev => Math.min(5, prev * 1.2));
+        break;
+      
+      case '-':
+        event.preventDefault();
+        setCurrentScale(prev => Math.max(0.1, prev * 0.8));
+        break;
+      
+      case 'f':
+        event.preventDefault();
+        fitToWindow();
+        break;
+      
+      case 'o':
+        event.preventDefault();
+        setCurrentScale(1);
+        break;
+      
+      case 'Escape':
+        event.preventDefault();
+        setPreviewContent(null);
+        break;
+    }
+  }, [imageFiles, selectedIndex]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyPress);
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [handleKeyPress]);
+
+  // ナビゲーション
+  const goHome = async () => {
+    try {
+      const homePath = await window.electronAPI.getHomeDirectory();
+      await loadDirectory(homePath);
+    } catch (error) {
+      setStatus(`Error: ${error.message}`);
+    }
+  };
+
+  const goUp = async () => {
+    try {
+      const parentPath = await window.electronAPI.getParentDirectory(currentPath);
+      if (parentPath) {
+        await loadDirectory(parentPath);
+      }
+    } catch (error) {
+      setStatus(`Error: ${error.message}`);
+    }
+  };
+
+  // ウィンドウにフィット
+  const fitToWindow = () => {
+    // 実装は後で追加
+    setCurrentScale(1);
+  };
+
+  // 選択されたファイルのプレビューを自動表示
+  useEffect(() => {
+    if (imageFiles[selectedIndex]) {
+      previewFile(imageFiles[selectedIndex]);
+    }
+  }, [selectedIndex, imageFiles]);
+
   return (
-    <div>
-      <div className="Hello">
-        <img width="200" alt="icon" src={icon} />
-      </div>
-      <h1>electron-react-boilerplate</h1>
-      <div className="Hello">
-        <a
-          href="https://electron-react-boilerplate.js.org/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="books">
-              📚
-            </span>
-            Read our docs
+    <div className="image-explorer">
+      {/* ヘッダー */}
+      <header className="header">
+        <div className="path-bar">
+          <button onClick={goHome} className="path-btn" title="Home (Home)">
+            🏠
           </button>
-        </a>
-        <a
-          href="https://github.com/sponsors/electron-react-boilerplate"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="folded hands">
-              🙏
-            </span>
-            Donate
+          <button onClick={goUp} className="path-btn" title="Go up (Backspace)">
+            ⬆️
           </button>
-        </a>
-      </div>
+          <span className="current-path">{currentPath}</span>
+        </div>
+        <div className="controls">
+          <span className="help-text">Image File Explorer</span>
+        </div>
+      </header>
+
+      {/* メインコンテンツ */}
+      <main className="main-content">
+        {/* 画像ファイルリスト */}
+        <div className="file-list-container">
+          <div className="file-list">
+            {imageFiles.map((file, index) => (
+              <div
+                key={file.path}
+                className={`file-item ${index === selectedIndex ? 'selected' : ''}`}
+                onClick={() => setSelectedIndex(index)}
+              >
+                <span className="file-icon">🖼️</span>
+                <span className="file-name">{file.name}</span>
+                <span className="file-size">{formatFileSize(file.size)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* プレビューパネル */}
+        <div className="preview-container">
+          <div className="preview-panel">
+            {previewContent ? (
+              <img
+                src={previewContent}
+                alt="Preview"
+                className="preview-image"
+                style={{ transform: `scale(${currentScale})` }}
+              />
+            ) : (
+              <div className="preview-placeholder">
+                <h3>Mireru - Image Explorer</h3>
+                <p>Select an image file to preview</p>
+                <div className="key-hints">
+                  <div><kbd>j/k</kbd> Navigate up/down</div>
+                  <div><kbd>Space/Enter</kbd> Preview</div>
+                  <div><kbd>+/-</kbd> Zoom in/out</div>
+                  <div><kbd>f</kbd> Fit to window</div>
+                  <div><kbd>o</kbd> Original size</div>
+                  <div><kbd>Backspace</kbd> Go up</div>
+                  <div><kbd>Home</kbd> Go home</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* ステータスバー */}
+      <footer className="status-bar">
+        <span>{status}</span>
+        <span>Images: {imageFiles.length}</span>
+      </footer>
     </div>
   );
 }
 
 export default function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Hello />} />
-      </Routes>
-    </Router>
-  );
+  return <ImageExplorer />;
 }

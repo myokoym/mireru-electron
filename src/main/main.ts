@@ -17,9 +17,6 @@ import os from 'os';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
-// 開発環境かどうか
-const isDev = process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
-
 class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -66,7 +63,7 @@ ipcMain.handle('get-directory-contents', async (event, dirPath: string) => {
     
     return result;
   } catch (error) {
-    throw new Error(`Failed to read directory: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Failed to read directory: ${error.message}`);
   }
 });
 
@@ -95,7 +92,7 @@ ipcMain.handle('read-file', async (event, filePath: string) => {
       return { type: 'text', content: 'Not an image file', size: stat.size };
     }
   } catch (error) {
-    throw new Error(`Failed to read file: ${error instanceof Error ? error.message : String(error)}`);
+    throw new Error(`Failed to read file: ${error.message}`);
   }
 });
 
@@ -119,7 +116,10 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install();
 }
 
-if (isDev) {
+const isDebug =
+  process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+
+if (isDebug) {
   require('electron-debug').default();
 }
 
@@ -137,7 +137,7 @@ const installExtensions = async () => {
 };
 
 const createWindow = async () => {
-  if (isDev) {
+  if (isDebug) {
     await installExtensions();
   }
 
@@ -157,15 +157,13 @@ const createWindow = async () => {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: app.isPackaged
+        ? path.join(__dirname, 'preload.js')
+        : path.join(__dirname, '../../.erb/dll/preload.js'),
     },
   });
 
-  if (isDev) {
-    mainWindow.loadURL('http://localhost:1212');
-  } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
-  }
+  mainWindow.loadURL(resolveHtmlPath('index.html'));
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
@@ -194,9 +192,6 @@ const createWindow = async () => {
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
-
-  // Note: Hot reload is handled by electronmon when using npm run start:main
-  // For npm start, only renderer hot reload is available via webpack-dev-server
 };
 
 /**

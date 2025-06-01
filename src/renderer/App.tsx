@@ -32,6 +32,11 @@ function ImageExplorer() {
     file.isFile && IMAGE_EXTENSIONS.includes(file.extension.toLowerCase())
   );
 
+  // ディレクトリと画像ファイルを表示用にフィルタリング
+  const displayItems = files.filter(file => 
+    file.isDirectory || (file.isFile && IMAGE_EXTENSIONS.includes(file.extension.toLowerCase()))
+  );
+
   // 初期化
   useEffect(() => {
     const initializeApp = async () => {
@@ -94,13 +99,22 @@ function ImageExplorer() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
+  // ファイル/ディレクトリを開く
+  const openItem = async (item: FileItem) => {
+    if (item.isDirectory) {
+      await loadDirectory(item.path);
+    } else if (item.isFile) {
+      await previewFile(item);
+    }
+  };
+
   // キーボード操作
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     switch (event.key) {
       case 'j':
       case 'ArrowDown':
         event.preventDefault();
-        setSelectedIndex(prev => Math.min(imageFiles.length - 1, prev + 1));
+        setSelectedIndex(prev => Math.min(displayItems.length - 1, prev + 1));
         break;
       
       case 'k':
@@ -111,7 +125,7 @@ function ImageExplorer() {
       
       case 'G':
         event.preventDefault();
-        setSelectedIndex(imageFiles.length - 1);
+        setSelectedIndex(displayItems.length - 1);
         break;
       
       case 'g':
@@ -123,15 +137,17 @@ function ImageExplorer() {
       
       case ' ':
         event.preventDefault();
-        if (imageFiles[selectedIndex]) {
-          previewFile(imageFiles[selectedIndex]);
+        if (displayItems[selectedIndex]) {
+          if (displayItems[selectedIndex].isFile) {
+            previewFile(displayItems[selectedIndex]);
+          }
         }
         break;
       
       case 'Enter':
         event.preventDefault();
-        if (imageFiles[selectedIndex]) {
-          previewFile(imageFiles[selectedIndex]);
+        if (displayItems[selectedIndex]) {
+          openItem(displayItems[selectedIndex]);
         }
         break;
       
@@ -171,7 +187,7 @@ function ImageExplorer() {
         setPreviewContent(null);
         break;
     }
-  }, [imageFiles, selectedIndex]);
+  }, [displayItems, selectedIndex]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
@@ -209,10 +225,12 @@ function ImageExplorer() {
 
   // 選択されたファイルのプレビューを自動表示
   useEffect(() => {
-    if (imageFiles[selectedIndex]) {
-      previewFile(imageFiles[selectedIndex]);
+    if (displayItems[selectedIndex] && displayItems[selectedIndex].isFile) {
+      previewFile(displayItems[selectedIndex]);
+    } else {
+      setPreviewContent(null);
     }
-  }, [selectedIndex, imageFiles]);
+  }, [selectedIndex, displayItems]);
 
   return (
     <div className="image-explorer">
@@ -234,18 +252,23 @@ function ImageExplorer() {
 
       {/* メインコンテンツ */}
       <main className="main-content">
-        {/* 画像ファイルリスト */}
+        {/* ファイル・ディレクトリリスト */}
         <div className="file-list-container">
           <div className="file-list">
-            {imageFiles.map((file, index) => (
+            {displayItems.map((item, index) => (
               <div
-                key={file.path}
+                key={item.path}
                 className={`file-item ${index === selectedIndex ? 'selected' : ''}`}
                 onClick={() => setSelectedIndex(index)}
+                onDoubleClick={() => openItem(item)}
               >
-                <span className="file-icon">🖼️</span>
-                <span className="file-name">{file.name}</span>
-                <span className="file-size">{formatFileSize(file.size)}</span>
+                <span className="file-icon">
+                  {item.isDirectory ? '📁' : '🖼️'}
+                </span>
+                <span className="file-name">{item.name}</span>
+                <span className="file-size">
+                  {item.isDirectory ? '' : formatFileSize(item.size)}
+                </span>
               </div>
             ))}
           </div>
@@ -267,7 +290,8 @@ function ImageExplorer() {
                 <p>Select an image file to preview</p>
                 <div className="key-hints">
                   <div><kbd>j/k</kbd> Navigate up/down</div>
-                  <div><kbd>Space/Enter</kbd> Preview</div>
+                  <div><kbd>Enter</kbd> Open folder/image</div>
+                  <div><kbd>Space</kbd> Preview image</div>
                   <div><kbd>+/-</kbd> Zoom in/out</div>
                   <div><kbd>f</kbd> Fit to window</div>
                   <div><kbd>o</kbd> Original size</div>
@@ -283,7 +307,7 @@ function ImageExplorer() {
       {/* ステータスバー */}
       <footer className="status-bar">
         <span>{status}</span>
-        <span>Images: {imageFiles.length}</span>
+        <span>Folders: {displayItems.filter(item => item.isDirectory).length} | Images: {imageFiles.length}</span>
       </footer>
     </div>
   );

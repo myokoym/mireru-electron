@@ -18,6 +18,11 @@ interface FileResult {
 }
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+const TEXT_EXTENSIONS = ['.txt', '.md', '.js', '.jsx', '.ts', '.tsx', '.json', '.html', '.css', '.xml', '.log', '.py', '.rb', '.php', '.java', '.c', '.cpp', '.h', '.sh', '.yaml', '.yml'];
+const VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv'];
+const PDF_EXTENSIONS = ['.pdf'];
+
+const SUPPORTED_EXTENSIONS = [...IMAGE_EXTENSIONS, ...TEXT_EXTENSIONS, ...VIDEO_EXTENSIONS, ...PDF_EXTENSIONS];
 
 function ImageExplorer() {
   const [currentPath, setCurrentPath] = useState<string>('');
@@ -27,14 +32,14 @@ function ImageExplorer() {
   const [status, setStatus] = useState<string>('Initializing...');
   const [previewContent, setPreviewContent] = useState<string | null>(null);
 
-  // 画像ファイルのみをフィルタリング
-  const imageFiles = files.filter(file => 
-    file.isFile && IMAGE_EXTENSIONS.includes(file.extension.toLowerCase())
+  // サポートされているファイルのみをフィルタリング
+  const supportedFiles = files.filter(file => 
+    file.isFile && SUPPORTED_EXTENSIONS.includes(file.extension.toLowerCase())
   );
 
-  // ディレクトリと画像ファイルを表示用にフィルタリング
+  // ディレクトリとサポートされているファイルを表示用にフィルタリング
   const displayItems = files.filter(file => 
-    file.isDirectory || (file.isFile && IMAGE_EXTENSIONS.includes(file.extension.toLowerCase()))
+    file.isDirectory || (file.isFile && SUPPORTED_EXTENSIONS.includes(file.extension.toLowerCase()))
   );
 
   // 初期化
@@ -69,7 +74,7 @@ function ImageExplorer() {
 
   // ファイルプレビュー
   const previewFile = async (file: FileItem) => {
-    if (!file.isFile || !IMAGE_EXTENSIONS.includes(file.extension.toLowerCase())) {
+    if (!file.isFile || !SUPPORTED_EXTENSIONS.includes(file.extension.toLowerCase())) {
       setPreviewContent(null);
       return;
     }
@@ -77,17 +82,25 @@ function ImageExplorer() {
     try {
       setStatus('Loading preview...');
       const result: FileResult = await window.electronAPI.readFile(file.path);
+      setPreviewContent(result.content);
       if (result.type === 'image') {
-        setPreviewContent(result.content);
         setCurrentScale(1);
-      } else {
-        setPreviewContent(null);
       }
       setStatus(`Preview: ${file.name}`);
     } catch (error) {
       setPreviewContent(null);
       setStatus(`Preview error: ${error.message}`);
     }
+  };
+
+  // ファイルアイコンの取得
+  const getFileIcon = (extension: string): string => {
+    const ext = extension.toLowerCase();
+    if (IMAGE_EXTENSIONS.includes(ext)) return '🖼️';
+    if (TEXT_EXTENSIONS.includes(ext)) return '📄';
+    if (VIDEO_EXTENSIONS.includes(ext)) return '🎬';
+    if (PDF_EXTENSIONS.includes(ext)) return '📋';
+    return '📄';
   };
 
   // ファイルサイズの書式設定
@@ -223,6 +236,49 @@ function ImageExplorer() {
     setCurrentScale(1);
   };
 
+  // プレビューコンテンツのレンダリング
+  const renderPreviewContent = () => {
+    if (!previewContent || !displayItems[selectedIndex]) return null;
+    
+    const file = displayItems[selectedIndex];
+    const ext = file.extension.toLowerCase();
+    
+    if (IMAGE_EXTENSIONS.includes(ext)) {
+      return (
+        <img
+          src={previewContent}
+          alt="Preview"
+          className="preview-image"
+          style={{ transform: `scale(${currentScale})` }}
+        />
+      );
+    } else if (TEXT_EXTENSIONS.includes(ext)) {
+      return (
+        <pre className="preview-text">
+          {previewContent}
+        </pre>
+      );
+    } else if (VIDEO_EXTENSIONS.includes(ext)) {
+      return (
+        <video
+          src={previewContent}
+          controls
+          className="preview-video"
+          style={{ maxWidth: '100%', maxHeight: '100%' }}
+        />
+      );
+    } else if (PDF_EXTENSIONS.includes(ext)) {
+      return (
+        <div className="preview-pdf">
+          <p>PDF Preview: {file.name}</p>
+          <p>Use external application to view full PDF</p>
+        </div>
+      );
+    }
+    
+    return <div className="preview-unsupported">Unsupported file type</div>;
+  };
+
   // 選択されたファイルのプレビューを自動表示
   useEffect(() => {
     if (displayItems[selectedIndex] && displayItems[selectedIndex].isFile) {
@@ -246,7 +302,7 @@ function ImageExplorer() {
           <span className="current-path">{currentPath}</span>
         </div>
         <div className="controls">
-          <span className="help-text">Image File Explorer</span>
+          <span className="help-text">File Explorer</span>
         </div>
       </header>
 
@@ -263,7 +319,7 @@ function ImageExplorer() {
                 onDoubleClick={() => openItem(item)}
               >
                 <span className="file-icon">
-                  {item.isDirectory ? '📁' : '🖼️'}
+                  {item.isDirectory ? '📁' : getFileIcon(item.extension)}
                 </span>
                 <span className="file-name">{item.name}</span>
                 <span className="file-size">
@@ -278,21 +334,18 @@ function ImageExplorer() {
         <div className="preview-container">
           <div className="preview-panel">
             {previewContent ? (
-              <img
-                src={previewContent}
-                alt="Preview"
-                className="preview-image"
-                style={{ transform: `scale(${currentScale})` }}
-              />
+              <div className="preview-content">
+                {renderPreviewContent()}
+              </div>
             ) : (
               <div className="preview-placeholder">
-                <h3>Mireru - Image Explorer</h3>
-                <p>Select an image file to preview</p>
+                <h3>Mireru - File Explorer</h3>
+                <p>Select a file to preview</p>
                 <div className="key-hints">
                   <div><kbd>j/k</kbd> Navigate up/down</div>
-                  <div><kbd>Enter</kbd> Open folder/image</div>
-                  <div><kbd>Space</kbd> Preview image</div>
-                  <div><kbd>+/-</kbd> Zoom in/out</div>
+                  <div><kbd>Enter</kbd> Open folder/file</div>
+                  <div><kbd>Space</kbd> Preview file</div>
+                  <div><kbd>+/-</kbd> Zoom in/out (images)</div>
                   <div><kbd>f</kbd> Fit to window</div>
                   <div><kbd>o</kbd> Original size</div>
                   <div><kbd>Backspace</kbd> Go up</div>
@@ -307,7 +360,7 @@ function ImageExplorer() {
       {/* ステータスバー */}
       <footer className="status-bar">
         <span>{status}</span>
-        <span>Folders: {displayItems.filter(item => item.isDirectory).length} | Images: {imageFiles.length}</span>
+        <span>Folders: {displayItems.filter(item => item.isDirectory).length} | Files: {supportedFiles.length}</span>
       </footer>
     </div>
   );

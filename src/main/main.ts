@@ -87,9 +87,28 @@ ipcMain.handle('read-file', async (event, filePath: string) => {
         content: `data:image/${mimeType};base64,${base64}`, 
         size: stat.size 
       };
+    } else if (['.txt', '.md', '.js', '.jsx', '.ts', '.tsx', '.json', '.html', '.css', '.xml', '.log', '.py', '.rb', '.php', '.java', '.c', '.cpp', '.h', '.sh', '.yaml', '.yml'].includes(ext)) {
+      // Text file
+      const content = fs.readFileSync(filePath, 'utf8');
+      return { type: 'text', content, size: stat.size };
+    } else if (['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv'].includes(ext)) {
+      // Video file
+      const buffer = fs.readFileSync(filePath);
+      const base64 = buffer.toString('base64');
+      const mimeType = ext === '.webm' ? 'webm' : ext === '.mov' ? 'quicktime' : 'mp4';
+      return { 
+        type: 'video', 
+        content: `data:video/${mimeType};base64,${base64}`, 
+        size: stat.size 
+      };
+    } else if (['.pdf'].includes(ext)) {
+      // PDF file
+      return { type: 'pdf', content: 'PDF file detected', size: stat.size };
     } else {
-      // Other files (not needed for image explorer, but keeping for compatibility)
-      return { type: 'text', content: 'Not an image file', size: stat.size };
+      // Binary file (hex dump)
+      const buffer = fs.readFileSync(filePath);
+      const hex = buffer.toString('hex').match(/.{1,2}/g)?.join(' ') || '';
+      return { type: 'hex', content: hex.substring(0, 2000), size: stat.size };
     }
   } catch (error) {
     throw new Error(`Failed to read file: ${error.message}`);

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mireru - ファイルエクスプローラー</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="path-bar">
+                <button id="home-btn" class="path-btn" title="ホーム (Home)">🏠</button>
+                <button id="up-btn" class="path-btn" title="上へ (Backspace)">⬆️</button>
+                <span id="current-path" class="current-path"></span>
+            </div>
+            <div class="controls">
+                <button id="reload-btn" class="control-btn" title="リロード (r)">↻</button>
+                <span class="help-text">h:help q:quit</span>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <main class="main-content">
+            <!-- ファイルリスト -->
+            <div class="file-list-container">
+                <div id="file-list" class="file-list" tabindex="0">
+                    <!-- ファイルアイテムがここに動的に追加される -->
+                </div>
+            </div>
+
+            <!-- プレビューパネル -->
+            <div class="preview-container">
+                <div id="preview-panel" class="preview-panel">
+                    <div class="preview-placeholder">
+                        <h3>Mireru</h3>
+                        <p>ファイルを選択してプレビューを表示</p>
+                        <div class="key-hints">
+                            <div><kbd>j/k</kbd> 上下移動</div>
+                            <div><kbd>h/l</kbd> 左右スクロール</div>
+                            <div><kbd>Enter</kbd> 開く</div>
+                            <div><kbd>Space</kbd> プレビュー</div>
+                            <div><kbd>e</kbd> 展開/折りたたみ</div>
+                            <div><kbd>r</kbd> リロード</div>
+                            <div><kbd>q</kbd> 終了</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ステータスバー -->
+        <footer class="status-bar">
+            <span id="status-text">準備完了</span>
+            <span id="file-count"></span>
+        </footer>
+
+        <!-- ヘルプモーダル -->
+        <div id="help-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Mireru - キーボードショートカット</h2>
+                    <button class="close-btn" onclick="closeHelp()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="shortcut-section">
+                        <h3>ナビゲーション</h3>
+                        <div class="shortcut"><kbd>j</kbd> <kbd>↓</kbd> - 下へ移動</div>
+                        <div class="shortcut"><kbd>k</kbd> <kbd>↑</kbd> - 上へ移動</div>
+                        <div class="shortcut"><kbd>h</kbd> <kbd>←</kbd> - 左スクロール</div>
+                        <div class="shortcut"><kbd>l</kbd> <kbd>→</kbd> - 右スクロール</div>
+                        <div class="shortcut"><kbd>G</kbd> - 最下部へ</div>
+                        <div class="shortcut"><kbd>Home</kbd> - ホームディレクトリ</div>
+                        <div class="shortcut"><kbd>Backspace</kbd> - 親ディレクトリ</div>
+                    </div>
+                    <div class="shortcut-section">
+                        <h3>ファイル操作</h3>
+                        <div class="shortcut"><kbd>Enter</kbd> - ファイル/ディレクトリを開く</div>
+                        <div class="shortcut"><kbd>Space</kbd> - プレビュー表示</div>
+                        <div class="shortcut"><kbd>e</kbd> - ディレクトリ展開/折りたたみ</div>
+                        <div class="shortcut"><kbd>Ctrl+Enter</kbd> - 外部アプリで開く</div>
+                    </div>
+                    <div class="shortcut-section">
+                        <h3>表示</h3>
+                        <div class="shortcut"><kbd>r</kbd> - リロード</div>
+                        <div class="shortcut"><kbd>+</kbd> - 拡大</div>
+                        <div class="shortcut"><kbd>-</kbd> - 縮小</div>
+                        <div class="shortcut"><kbd>f</kbd> - ウィンドウにフィット</div>
+                        <div class="shortcut"><kbd>o</kbd> - 原寸表示</div>
+                    </div>
+                    <div class="shortcut-section">
+                        <h3>その他</h3>
+                        <div class="shortcut"><kbd>h</kbd> - このヘルプを表示</div>
+                        <div class="shortcut"><kbd>q</kbd> - 終了</div>
+                        <div class="shortcut"><kbd>Esc</kbd> - モーダルを閉じる</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

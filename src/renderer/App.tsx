@@ -246,7 +246,7 @@ function ImageExplorer() {
           <span className="current-path">{currentPath}</span>
         </div>
         <div className="controls">
-          <span className="help-text">Image File Explorer</span>
+          <span className="help-text">Image File Explorer!!</span>
         </div>
       </header>
 

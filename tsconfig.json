@@ -2,7 +2,7 @@
   "compilerOptions": {
     "incremental": true,
     "target": "es2022",
-    "module": "node16",
+    "module": "Node16",
     "lib": ["dom", "es2022"],
     "jsx": "react-jsx",
     "strict": true,
@@ -12,7 +12,8 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    "outDir": ".erb/dll"
+    "outDir": "dist"
   },
-  "exclude": ["test", "release/build", "release/app/dist", ".erb/dll"]
+  "include": ["src/main/**/*"],
+  "exclude": ["test", "release/build", "release/app/dist", "dist", "node_modules"]
 }

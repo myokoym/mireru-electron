@@ -316,16 +316,27 @@ function ImageExplorer() {
   
   // ファイル判定結果のキャッシュ
   const [fileTypeCache, setFileTypeCache] = useState<Map<string, 'text' | 'binary'>>(new Map());
+  
+  // 検索機能
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // サポートされているファイルのみをフィルタリング
   const supportedFiles = files.filter(file => 
     file.isFile && SUPPORTED_EXTENSIONS.includes(file.extension.toLowerCase())
   );
 
-  // ディレクトリとすべてのファイルを表示（バイナリファイルも含む）
-  const displayItems = files.filter(file => 
-    file.isDirectory || file.isFile
-  );
+  // ディレクトリとすべてのファイルを表示（バイナリファイルも含む）+ 検索フィルタリング
+  const displayItems = files.filter(file => {
+    if (!(file.isDirectory || file.isFile)) return false;
+    
+    // 検索クエリが空の場合は全て表示
+    if (!searchQuery.trim()) return true;
+    
+    // ファイル名での部分一致検索（大文字小文字区別なし）
+    return file.name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   // 初期化
   useEffect(() => {
@@ -444,6 +455,12 @@ function ImageExplorer() {
     }
   };
 
+  // 検索をクリア
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSelectedIndex(0);
+  };
+
   // ファイル/ディレクトリを開く
   const openItem = async (item: FileItem) => {
     if (item.isDirectory) {
@@ -455,6 +472,22 @@ function ImageExplorer() {
 
   // キーボード操作
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
+    // 検索ボックスにフォーカスがある場合は、ほとんどのキーバインドを無効化
+    if (isSearchFocused) {
+      // 検索フォーカス中でも有効にするキー
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        // Shiftキーと一緒に押された場合は検索をクリア
+        if (event.shiftKey && searchQuery) {
+          clearSearch();
+        }
+        searchInputRef.current?.blur();
+        return;
+      }
+      // その他のキーは検索入力に任せる
+      return;
+    }
+    
     // Ctrl+Shift+C でファイルパスをコピー
     if (event.ctrlKey && event.shiftKey && event.key === 'C') {
       event.preventDefault();
@@ -539,11 +572,6 @@ function ImageExplorer() {
         setCurrentScale(1);
         break;
       
-      case 'Escape':
-        event.preventDefault();
-        setPreviewContent(null);
-        break;
-      
       case 'r':
         event.preventDefault();
         // リロード - 現在選択されているファイルを再プレビュー
@@ -601,8 +629,23 @@ function ImageExplorer() {
         event.preventDefault();
         scrollPreviewPanel(17 * 10, 0); // 大きく右スクロール
         break;
+      
+      // 検索機能
+      case '/':
+        event.preventDefault();
+        searchInputRef.current?.focus();
+        break;
+      
+      case 'Escape':
+        event.preventDefault();
+        if (searchQuery) {
+          clearSearch();
+        } else {
+          setPreviewContent(null);
+        }
+        break;
     }
-  }, [displayItems, selectedIndex, copyCurrentFilePath]);
+  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
@@ -800,6 +843,47 @@ function ImageExplorer() {
         </div>
       </header>
 
+      {/* 検索バー */}
+      <div className="search-bar">
+        <div className="search-input-container">
+          <input
+            ref={searchInputRef}
+            type="text"
+            className="search-input"
+            placeholder="🔍 Search files..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                // 矢印キーでファイルリストにフォーカス移動
+                e.preventDefault();
+                e.currentTarget.blur();
+                if (displayItems.length > 0) {
+                  setSelectedIndex(e.key === 'ArrowDown' ? 0 : displayItems.length - 1);
+                }
+              }
+              // Escapeはグローバルハンドラーに任せる
+            }}
+          />
+          {searchQuery && (
+            <button 
+              className="search-clear-btn"
+              onClick={clearSearch}
+              title="Clear search (Esc)"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        {searchQuery && (
+          <div className="search-results-count">
+            {displayItems.length} result{displayItems.length !== 1 ? 's' : ''}
+          </div>
+        )}
+      </div>
+
       {/* メインコンテンツ */}
       <main className="main-content">
         {/* ファイル・ディレクトリリスト */}
@@ -839,6 +923,9 @@ function ImageExplorer() {
                   <div><kbd>HJKL</kbd> Scroll preview (large)</div>
                   <div><kbd>Enter/e</kbd> Open folder/file</div>
                   <div><kbd>Space</kbd> Preview file</div>
+                  <div><kbd>/</kbd> Focus search</div>
+                  <div><kbd>Escape</kbd> Exit search / Clear preview</div>
+                  <div><kbd>Shift+Escape</kbd> Clear search</div>
                   <div><kbd>Ctrl+C</kbd> Copy selected text</div>
                   <div><kbd>Ctrl+Shift+C</kbd> Copy file path</div>
                   <div><kbd>r</kbd> Reload current file</div>

@@ -67,6 +67,60 @@ ipcMain.handle('get-directory-contents', async (event, dirPath: string) => {
   }
 });
 
+// テキストファイル判定のヘルパー関数
+function isTextFile(buffer: Buffer, extension: string): boolean {
+  // 既知の拡張子は既存の分類に従う
+  const textExtensions = ['.txt', '.md', '.js', '.jsx', '.ts', '.tsx', '.json', '.html', '.css', '.xml', '.log', '.py', '.rb', '.php', '.java', '.c', '.cpp', '.h', '.sh', '.yaml', '.yml'];
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+  const videoExtensions = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv'];
+  const pdfExtensions = ['.pdf'];
+  
+  if (textExtensions.includes(extension) || imageExtensions.includes(extension) || 
+      videoExtensions.includes(extension) || pdfExtensions.includes(extension)) {
+    return false; // 既知の拡張子は既存処理に任せる
+  }
+  
+  // バッファが空の場合はテキストとして扱う
+  if (buffer.length === 0) return true;
+  
+  // 最初の1KBを分析（ファイルサイズが小さければ全体）
+  const sampleSize = Math.min(1024, buffer.length);
+  const sample = buffer.subarray(0, sampleSize);
+  
+  // ヌルバイトがあればバイナリ
+  if (sample.includes(0)) return false;
+  
+  // 制御文字の割合をチェック（タブ、改行、キャリッジリターンは除く）
+  let controlChars = 0;
+  let printableChars = 0;
+  
+  for (let i = 0; i < sample.length; i++) {
+    const byte = sample[i];
+    if (byte === 9 || byte === 10 || byte === 13) {
+      // タブ、LF、CRは有効な文字
+      printableChars++;
+    } else if (byte < 32 || byte > 126) {
+      // ASCII制御文字または非ASCII
+      if (byte < 32) {
+        controlChars++;
+      } else {
+        // 高位ビット文字（UTF-8の可能性）
+        printableChars++;
+      }
+    } else {
+      // 印刷可能ASCII文字
+      printableChars++;
+    }
+  }
+  
+  // 制御文字が20%以上ならバイナリとみなす
+  const totalChars = printableChars + controlChars;
+  if (totalChars === 0) return true;
+  
+  const controlRatio = controlChars / totalChars;
+  return controlRatio < 0.2;
+}
+
 ipcMain.handle('read-file', async (event, filePath: string) => {
   try {
     const stat = fs.statSync(filePath);
@@ -102,8 +156,20 @@ ipcMain.handle('read-file', async (event, filePath: string) => {
       // PDF file
       return { type: 'pdf', content: 'PDF file detected', size: stat.size };
     } else {
-      // Binary file (hex dump) - limit to 20KB like Ruby reference
+      // Unknown extension - detect based on content
       const buffer = fs.readFileSync(filePath, { encoding: null, flag: 'r' });
+      
+      if (isTextFile(buffer, ext)) {
+        // Treat as text file
+        try {
+          const content = buffer.toString('utf8');
+          return { type: 'text', content, size: stat.size };
+        } catch (error) {
+          // UTF-8 decode failed, treat as binary
+        }
+      }
+      
+      // Binary file (hex dump) - limit to 20KB like Ruby reference
       const limitedBuffer = buffer.subarray(0, 20 * 1024);
       const hexLines = [];
       

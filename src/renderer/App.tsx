@@ -1,5 +1,49 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import javascript from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
+import typescript from 'react-syntax-highlighter/dist/esm/languages/hljs/typescript';
+import python from 'react-syntax-highlighter/dist/esm/languages/hljs/python';
+import ruby from 'react-syntax-highlighter/dist/esm/languages/hljs/ruby';
+import php from 'react-syntax-highlighter/dist/esm/languages/hljs/php';
+import java from 'react-syntax-highlighter/dist/esm/languages/hljs/java';
+import c from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
+import cpp from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
+import csharp from 'react-syntax-highlighter/dist/esm/languages/hljs/csharp';
+import go from 'react-syntax-highlighter/dist/esm/languages/hljs/go';
+import rust from 'react-syntax-highlighter/dist/esm/languages/hljs/rust';
+import bash from 'react-syntax-highlighter/dist/esm/languages/hljs/bash';
+import html from 'react-syntax-highlighter/dist/esm/languages/hljs/xml';
+import css from 'react-syntax-highlighter/dist/esm/languages/hljs/css';
+import scss from 'react-syntax-highlighter/dist/esm/languages/hljs/scss';
+import json from 'react-syntax-highlighter/dist/esm/languages/hljs/json';
+import xml from 'react-syntax-highlighter/dist/esm/languages/hljs/xml';
+import yaml from 'react-syntax-highlighter/dist/esm/languages/hljs/yaml';
+import markdown from 'react-syntax-highlighter/dist/esm/languages/hljs/markdown';
+import sql from 'react-syntax-highlighter/dist/esm/languages/hljs/sql';
 import './App.css';
+
+// 言語を登録
+SyntaxHighlighter.registerLanguage('javascript', javascript);
+SyntaxHighlighter.registerLanguage('typescript', typescript);
+SyntaxHighlighter.registerLanguage('python', python);
+SyntaxHighlighter.registerLanguage('ruby', ruby);
+SyntaxHighlighter.registerLanguage('php', php);
+SyntaxHighlighter.registerLanguage('java', java);
+SyntaxHighlighter.registerLanguage('c', c);
+SyntaxHighlighter.registerLanguage('cpp', cpp);
+SyntaxHighlighter.registerLanguage('csharp', csharp);
+SyntaxHighlighter.registerLanguage('go', go);
+SyntaxHighlighter.registerLanguage('rust', rust);
+SyntaxHighlighter.registerLanguage('bash', bash);
+SyntaxHighlighter.registerLanguage('html', html);
+SyntaxHighlighter.registerLanguage('css', css);
+SyntaxHighlighter.registerLanguage('scss', scss);
+SyntaxHighlighter.registerLanguage('json', json);
+SyntaxHighlighter.registerLanguage('xml', xml);
+SyntaxHighlighter.registerLanguage('yaml', yaml);
+SyntaxHighlighter.registerLanguage('markdown', markdown);
+SyntaxHighlighter.registerLanguage('sql', sql);
 
 interface FileItem {
   name: string;
@@ -23,6 +67,67 @@ const VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv'];
 const PDF_EXTENSIONS = ['.pdf'];
 
 const SUPPORTED_EXTENSIONS = [...IMAGE_EXTENSIONS, ...TEXT_EXTENSIONS, ...VIDEO_EXTENSIONS, ...PDF_EXTENSIONS];
+
+// 言語検出のマッピング
+const getLanguageFromExtension = (extension: string): string => {
+  const ext = extension.toLowerCase();
+  const languageMap: { [key: string]: string } = {
+    '.js': 'javascript',
+    '.jsx': 'javascript',
+    '.ts': 'typescript',
+    '.tsx': 'typescript',
+    '.py': 'python',
+    '.rb': 'ruby',
+    '.php': 'php',
+    '.java': 'java',
+    '.c': 'c',
+    '.cpp': 'cpp',
+    '.h': 'c',
+    '.cs': 'csharp',
+    '.go': 'go',
+    '.rs': 'rust',
+    '.sh': 'bash',
+    '.bash': 'bash',
+    '.zsh': 'bash',
+    '.fish': 'fish',
+    '.ps1': 'powershell',
+    '.html': 'html',
+    '.htm': 'html',
+    '.css': 'css',
+    '.scss': 'scss',
+    '.sass': 'sass',
+    '.less': 'less',
+    '.json': 'json',
+    '.xml': 'xml',
+    '.yaml': 'yaml',
+    '.yml': 'yaml',
+    '.toml': 'toml',
+    '.ini': 'ini',
+    '.cfg': 'ini',
+    '.conf': 'ini',
+    '.md': 'markdown',
+    '.markdown': 'markdown',
+    '.sql': 'sql',
+    '.r': 'r',
+    '.m': 'matlab',
+    '.swift': 'swift',
+    '.kt': 'kotlin',
+    '.scala': 'scala',
+    '.clj': 'clojure',
+    '.hs': 'haskell',
+    '.elm': 'elm',
+    '.lua': 'lua',
+    '.perl': 'perl',
+    '.pl': 'perl',
+    '.vim': 'vim',
+    '.dockerfile': 'dockerfile',
+    '.makefile': 'makefile',
+    '.cmake': 'cmake',
+    '.log': 'accesslog',
+  };
+  
+  return languageMap[ext] || 'text';
+};
 
 function ImageExplorer() {
   const [currentPath, setCurrentPath] = useState<string>('');
@@ -253,10 +358,31 @@ function ImageExplorer() {
         />
       );
     } else if (TEXT_EXTENSIONS.includes(ext)) {
+      const language = getLanguageFromExtension(ext);
       return (
-        <pre className="preview-text">
-          {previewContent}
-        </pre>
+        <div className="preview-text-container">
+          <SyntaxHighlighter
+            language={language}
+            style={github}
+            className="preview-text-syntax"
+            showLineNumbers={true}
+            lineNumberStyle={{ color: '#999', fontSize: '11px', paddingRight: '8px' }}
+            customStyle={{
+              background: '#ffffff',
+              padding: '0',
+              margin: '0',
+              borderRadius: '0',
+              fontSize: '12px',
+              lineHeight: '1.4',
+              height: '100%',
+              maxHeight: 'none',
+              overflow: 'auto',
+              border: 'none'
+            }}
+          >
+            {previewContent}
+          </SyntaxHighlighter>
+        </div>
       );
     } else if (VIDEO_EXTENSIONS.includes(ext)) {
       return (

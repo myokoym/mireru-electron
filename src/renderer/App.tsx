@@ -342,9 +342,9 @@ function ImageExplorer() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        const homePath = await window.electronAPI.getHomeDirectory();
-        setCurrentPath(homePath);
-        await loadDirectory(homePath);
+        const initialPath = await window.electronAPI.getInitialDirectory();
+        setCurrentPath(initialPath);
+        await loadDirectory(initialPath);
         setStatus('Ready');
       } catch (error) {
         setStatus(`Error: ${error.message}`);

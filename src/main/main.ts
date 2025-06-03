@@ -192,6 +192,30 @@ ipcMain.handle('get-home-directory', () => {
   return os.homedir();
 });
 
+ipcMain.handle('get-initial-directory', () => {
+  // コマンドライン引数から初期ディレクトリを取得
+  const args = process.argv.slice(2); // node, electron実行ファイルを除く
+  
+  if (args.length > 0) {
+    const targetPath = args[0];
+    try {
+      // パスが存在し、ディレクトリかチェック
+      const stat = fs.statSync(targetPath);
+      if (stat.isDirectory()) {
+        return path.resolve(targetPath);
+      } else if (stat.isFile()) {
+        // ファイルが指定された場合は親ディレクトリを返す
+        return path.dirname(path.resolve(targetPath));
+      }
+    } catch (error) {
+      console.warn(`Invalid path specified: ${targetPath}, falling back to home directory`);
+    }
+  }
+  
+  // 引数がない、または無効な場合はホームディレクトリ
+  return os.homedir();
+});
+
 ipcMain.handle('get-parent-directory', (event, currentPath: string) => {
   const parent = path.dirname(currentPath);
   return parent !== currentPath ? parent : null;

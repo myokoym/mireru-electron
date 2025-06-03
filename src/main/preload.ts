@@ -32,6 +32,8 @@ const electronAPI = {
     ipcRenderer.invoke('read-file', filePath),
   getHomeDirectory: () => 
     ipcRenderer.invoke('get-home-directory'),
+  getInitialDirectory: () => 
+    ipcRenderer.invoke('get-initial-directory'),
   getParentDirectory: (currentPath: string) => 
     ipcRenderer.invoke('get-parent-directory', currentPath),
   copyToClipboard: (text: string) => 

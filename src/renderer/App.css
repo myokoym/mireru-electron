@@ -185,6 +185,20 @@ body {
   object-fit: contain;
 }
 
+.preview-hex {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 11px;
+  line-height: 1.3;
+  white-space: pre;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin: 16px;
+  max-height: calc(100vh - 200px);
+  overflow: auto;
+  color: #333;
+}
+
 .preview-pdf,
 .preview-unsupported {
   display: flex;

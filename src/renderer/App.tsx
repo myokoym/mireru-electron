@@ -12,7 +12,7 @@ interface FileItem {
 }
 
 interface FileResult {
-  type: 'text' | 'image' | 'hex';
+  type: 'text' | 'image' | 'video' | 'pdf' | 'hex';
   content: string;
   size: number;
 }
@@ -37,9 +37,9 @@ function ImageExplorer() {
     file.isFile && SUPPORTED_EXTENSIONS.includes(file.extension.toLowerCase())
   );
 
-  // ディレクトリとサポートされているファイルを表示用にフィルタリング
+  // ディレクトリとすべてのファイルを表示（バイナリファイルも含む）
   const displayItems = files.filter(file => 
-    file.isDirectory || (file.isFile && SUPPORTED_EXTENSIONS.includes(file.extension.toLowerCase()))
+    file.isDirectory || file.isFile
   );
 
   // 初期化
@@ -74,7 +74,7 @@ function ImageExplorer() {
 
   // ファイルプレビュー
   const previewFile = async (file: FileItem) => {
-    if (!file.isFile || !SUPPORTED_EXTENSIONS.includes(file.extension.toLowerCase())) {
+    if (!file.isFile) {
       setPreviewContent(null);
       return;
     }
@@ -263,8 +263,13 @@ function ImageExplorer() {
         <video
           src={previewContent}
           controls
+          autoPlay={false}
           className="preview-video"
           style={{ maxWidth: '100%', maxHeight: '100%' }}
+          onError={(e) => {
+            console.error('Video playback error:', e);
+            setStatus('Video playback error');
+          }}
         />
       );
     } else if (PDF_EXTENSIONS.includes(ext)) {
@@ -274,9 +279,14 @@ function ImageExplorer() {
           <p>Use external application to view full PDF</p>
         </div>
       );
+    } else {
+      // Hex dump for binary files
+      return (
+        <pre className="preview-hex">
+          {previewContent}
+        </pre>
+      );
     }
-    
-    return <div className="preview-unsupported">Unsupported file type</div>;
   };
 
   // 選択されたファイルのプレビューを自動表示

@@ -92,23 +92,30 @@ ipcMain.handle('read-file', async (event, filePath: string) => {
       const content = fs.readFileSync(filePath, 'utf8');
       return { type: 'text', content, size: stat.size };
     } else if (['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv'].includes(ext)) {
-      // Video file
-      const buffer = fs.readFileSync(filePath);
-      const base64 = buffer.toString('base64');
-      const mimeType = ext === '.webm' ? 'webm' : ext === '.mov' ? 'quicktime' : 'mp4';
+      // Video file - use file URL to avoid memory issues
       return { 
         type: 'video', 
-        content: `data:video/${mimeType};base64,${base64}`, 
+        content: `file://${filePath}`, 
         size: stat.size 
       };
     } else if (['.pdf'].includes(ext)) {
       // PDF file
       return { type: 'pdf', content: 'PDF file detected', size: stat.size };
     } else {
-      // Binary file (hex dump)
-      const buffer = fs.readFileSync(filePath);
-      const hex = buffer.toString('hex').match(/.{1,2}/g)?.join(' ') || '';
-      return { type: 'hex', content: hex.substring(0, 2000), size: stat.size };
+      // Binary file (hex dump) - limit to 20KB like Ruby reference
+      const buffer = fs.readFileSync(filePath, { encoding: null, flag: 'r' });
+      const limitedBuffer = buffer.subarray(0, 20 * 1024);
+      const hexLines = [];
+      
+      for (let i = 0; i < limitedBuffer.length; i += 16) {
+        const chunk = limitedBuffer.subarray(i, Math.min(i + 16, limitedBuffer.length));
+        const offset = i.toString(16).padStart(8, '0');
+        const hex = Array.from(chunk).map(b => b.toString(16).padStart(2, '0')).join(' ');
+        const ascii = Array.from(chunk).map(b => (b >= 32 && b <= 126) ? String.fromCharCode(b) : '.').join('');
+        hexLines.push(`${offset}  ${hex.padEnd(47, ' ')}  |${ascii}|`);
+      }
+      
+      return { type: 'hex', content: hexLines.join('\n'), size: stat.size };
     }
   } catch (error) {
     throw new Error(`Failed to read file: ${error.message}`);

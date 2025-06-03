@@ -8,10 +8,11 @@ export function parseInitialDirectory(argv: string[]): string {
   
   // 開発環境と本番環境で引数の位置が異なる
   let args: string[];
-  if (argv[0].includes('/electron') && argv[1] === '.') {
-    // 開発環境: /path/to/electron . args...
+  if (argv[0].includes('/electron') && argv.includes('.')) {
+    // 開発環境: /path/to/electron [electronmon args...] . [user args...]
     console.log('DEBUG: Detected development mode');
-    args = argv.slice(2);
+    const dotIndex = argv.indexOf('.');
+    args = argv.slice(dotIndex + 1);
   } else {
     // 本番環境: ./app args...
     console.log('DEBUG: Detected production mode');

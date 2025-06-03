@@ -372,7 +372,7 @@ function ImageExplorer() {
   };
 
   // ファイルプレビュー
-  const previewFile = async (file: FileItem) => {
+  const previewFile = useCallback(async (file: FileItem) => {
     if (!file.isFile) {
       setPreviewContent(null);
       return;
@@ -390,7 +390,7 @@ function ImageExplorer() {
       setPreviewContent(null);
       setStatus(`Preview error: ${error.message}`);
     }
-  };
+  }, []);
 
   // ファイルアイコンの取得
   const getFileIcon = (extension: string, filePath?: string): string => {
@@ -670,7 +670,7 @@ function ImageExplorer() {
         }
         break;
     }
-  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused, scrollSelectedItemIntoView]);
+  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
@@ -848,12 +848,14 @@ function ImageExplorer() {
     } else {
       setPreviewContent(null);
     }
-  }, [selectedIndex, displayItems]);
+  }, [selectedIndex]); // displayItemsを依存配列から削除
 
   // 選択項目変更時に自動スクロール
   useEffect(() => {
-    scrollSelectedItemIntoView(selectedIndex);
-  }, [selectedIndex, scrollSelectedItemIntoView]);
+    if (displayItems.length > 0) {
+      scrollSelectedItemIntoView(selectedIndex);
+    }
+  }, [selectedIndex, displayItems.length]); // scrollSelectedItemIntoViewを依存配列から削除、lengthのみ監視
 
   return (
     <div className="image-explorer">

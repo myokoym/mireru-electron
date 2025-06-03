@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import javascript from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
@@ -136,6 +136,9 @@ function ImageExplorer() {
   const [currentScale, setCurrentScale] = useState<number>(1);
   const [status, setStatus] = useState<string>('Initializing...');
   const [previewContent, setPreviewContent] = useState<string | null>(null);
+  
+  // プレビューパネルのスクロール制御用ref
+  const previewPanelRef = useRef<HTMLDivElement>(null);
 
   // サポートされているファイルのみをフィルタリング
   const supportedFiles = files.filter(file => 
@@ -229,13 +232,13 @@ function ImageExplorer() {
   // キーボード操作
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     switch (event.key) {
-      case 'j':
+      case 'n':
       case 'ArrowDown':
         event.preventDefault();
         setSelectedIndex(prev => Math.min(displayItems.length - 1, prev + 1));
         break;
       
-      case 'k':
+      case 'p':
       case 'ArrowUp':
         event.preventDefault();
         setSelectedIndex(prev => Math.max(0, prev - 1));
@@ -304,6 +307,64 @@ function ImageExplorer() {
         event.preventDefault();
         setPreviewContent(null);
         break;
+      
+      case 'r':
+        event.preventDefault();
+        // リロード - 現在選択されているファイルを再プレビュー
+        if (displayItems[selectedIndex] && displayItems[selectedIndex].isFile) {
+          previewFile(displayItems[selectedIndex]);
+        }
+        break;
+      
+      case 'e':
+        event.preventDefault();
+        // ディレクトリ展開（Enterと同じ動作）
+        if (displayItems[selectedIndex]) {
+          openItem(displayItems[selectedIndex]);
+        }
+        break;
+      
+      // プレビューパネルのスクロール（vim風hjkl）
+      case 'h':
+        event.preventDefault();
+        scrollPreviewPanel(-17, 0); // 左スクロール
+        break;
+      
+      case 'j':
+        event.preventDefault();
+        scrollPreviewPanel(0, 17); // 下スクロール
+        break;
+      
+      case 'k':
+        event.preventDefault();
+        scrollPreviewPanel(0, -17); // 上スクロール
+        break;
+      
+      case 'l':
+        event.preventDefault();
+        scrollPreviewPanel(17, 0); // 右スクロール
+        break;
+      
+      // 大きなスクロール（HJKL）
+      case 'H':
+        event.preventDefault();
+        scrollPreviewPanel(-17 * 10, 0); // 大きく左スクロール
+        break;
+      
+      case 'J':
+        event.preventDefault();
+        scrollPreviewPanel(0, 17 * 10); // 大きく下スクロール
+        break;
+      
+      case 'K':
+        event.preventDefault();
+        scrollPreviewPanel(0, -17 * 10); // 大きく上スクロール
+        break;
+      
+      case 'L':
+        event.preventDefault();
+        scrollPreviewPanel(17 * 10, 0); // 大きく右スクロール
+        break;
     }
   }, [displayItems, selectedIndex]);
 
@@ -339,6 +400,44 @@ function ImageExplorer() {
   const fitToWindow = () => {
     // 実装は後で追加
     setCurrentScale(1);
+  };
+
+  // プレビューパネルのスクロール制御
+  const scrollPreviewPanel = (deltaX: number, deltaY: number) => {
+    if (!previewPanelRef.current) return;
+    
+    const scrollContainer = previewPanelRef.current.querySelector('.preview-content') as HTMLElement;
+    if (!scrollContainer) return;
+    
+    // 実際にスクロールする要素を特定
+    let targetElement: HTMLElement | null = null;
+    
+    // シンタックスハイライター
+    const syntaxElement = scrollContainer.querySelector('.preview-text-syntax') as HTMLElement;
+    if (syntaxElement) {
+      targetElement = syntaxElement;
+    }
+    
+    // 画像の場合はpreview-content自体
+    if (!targetElement && scrollContainer.querySelector('.preview-image')) {
+      targetElement = scrollContainer;
+    }
+    
+    // hexダンプの場合
+    const hexElement = scrollContainer.querySelector('.preview-hex') as HTMLElement;
+    if (!targetElement && hexElement) {
+      targetElement = hexElement;
+    }
+    
+    // デフォルトはpreview-content
+    if (!targetElement) {
+      targetElement = scrollContainer;
+    }
+    
+    if (targetElement) {
+      targetElement.scrollTop += deltaY;
+      targetElement.scrollLeft += deltaX;
+    }
   };
 
   // プレビューコンテンツのレンダリング
@@ -468,7 +567,7 @@ function ImageExplorer() {
 
         {/* プレビューパネル */}
         <div className="preview-container">
-          <div className="preview-panel">
+          <div className="preview-panel" ref={previewPanelRef}>
             {previewContent ? (
               <div className="preview-content">
                 {renderPreviewContent()}
@@ -478,9 +577,12 @@ function ImageExplorer() {
                 <h3>Mireru - File Explorer</h3>
                 <p>Select a file to preview</p>
                 <div className="key-hints">
-                  <div><kbd>j/k</kbd> Navigate up/down</div>
-                  <div><kbd>Enter</kbd> Open folder/file</div>
+                  <div><kbd>n/p</kbd> Navigate next/prev</div>
+                  <div><kbd>hjkl</kbd> Scroll preview (vim-style)</div>
+                  <div><kbd>HJKL</kbd> Scroll preview (large)</div>
+                  <div><kbd>Enter/e</kbd> Open folder/file</div>
                   <div><kbd>Space</kbd> Preview file</div>
+                  <div><kbd>r</kbd> Reload current file</div>
                   <div><kbd>+/-</kbd> Zoom in/out (images)</div>
                   <div><kbd>f</kbd> Fit to window</div>
                   <div><kbd>o</kbd> Original size</div>

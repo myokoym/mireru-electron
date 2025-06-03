@@ -84,6 +84,7 @@ npm run build
 - `hjkl` - Scroll preview (vim-style)
 - `HJKL` - Scroll preview (large steps)
 - `r` - Reload current file
+- `i/F1` - Toggle metadata sidebar
 - `Ctrl+Shift+C` - Copy file path
 
 <br>

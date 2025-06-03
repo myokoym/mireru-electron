@@ -338,6 +338,9 @@ function ImageExplorer() {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // メタ情報サイドバー
+  const [showMetadataSidebar, setShowMetadataSidebar] = useState<boolean>(false);
+
 
   // ディレクトリとすべてのファイルを表示（バイナリファイルも含む）+ 検索フィルタリング
   const displayItems = files.filter(file => {
@@ -692,6 +695,12 @@ function ImageExplorer() {
         searchInputRef.current?.focus();
         break;
       
+      case 'i':
+      case 'F1':
+        event.preventDefault();
+        setShowMetadataSidebar(prev => !prev);
+        break;
+
       case 'Escape':
         event.preventDefault();
         if (searchQuery) {
@@ -701,7 +710,7 @@ function ImageExplorer() {
         }
         break;
     }
-  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused, textFontSize]);
+  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused, textFontSize, showMetadataSidebar]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
@@ -802,6 +811,123 @@ function ImageExplorer() {
       setFileTypeCache(prev => new Map(prev.set(filePath, 'binary')));
       return 'binary';
     }
+  };
+
+  // メタ情報サイドバーのレンダリング
+  const renderMetadataSidebar = () => {
+    if (!displayItems[selectedIndex]) return null;
+    
+    const item = displayItems[selectedIndex];
+    const ext = item.extension.toLowerCase();
+    
+    return (
+      <div className="metadata-sidebar">
+        <div className="metadata-header">
+          <h3>File Information</h3>
+          <button 
+            className="metadata-close-btn"
+            onClick={() => setShowMetadataSidebar(false)}
+            title="Close metadata (i)"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <div className="metadata-content">
+          <div className="metadata-section">
+            <h4>Basic Info</h4>
+            <div className="metadata-item">
+              <span className="metadata-label">Name:</span>
+              <span className="metadata-value">{item.name}</span>
+            </div>
+            <div className="metadata-item">
+              <span className="metadata-label">Type:</span>
+              <span className="metadata-value">
+                {item.isDirectory ? 'Directory' : 'File'}
+              </span>
+            </div>
+            {!item.isDirectory && (
+              <>
+                <div className="metadata-item">
+                  <span className="metadata-label">Size:</span>
+                  <span className="metadata-value">{formatFileSize(item.size)}</span>
+                </div>
+                <div className="metadata-item">
+                  <span className="metadata-label">Extension:</span>
+                  <span className="metadata-value">{ext || 'None'}</span>
+                </div>
+              </>
+            )}
+            <div className="metadata-item">
+              <span className="metadata-label">Modified:</span>
+              <span className="metadata-value">
+                {new Date(item.modified).toLocaleString()}
+              </span>
+            </div>
+          </div>
+          
+          <div className="metadata-section">
+            <h4>Path Info</h4>
+            <div className="metadata-item">
+              <span className="metadata-label">Full Path:</span>
+              <span className="metadata-value metadata-path">{item.path}</span>
+            </div>
+          </div>
+          
+          {!item.isDirectory && previewContent && (
+            <div className="metadata-section">
+              <h4>Content Info</h4>
+              {TEXT_EXTENSIONS.includes(ext) && (
+                <>
+                  <div className="metadata-item">
+                    <span className="metadata-label">Lines:</span>
+                    <span className="metadata-value">
+                      {previewContent.split('\n').length.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="metadata-item">
+                    <span className="metadata-label">Characters:</span>
+                    <span className="metadata-value">
+                      {previewContent.length.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="metadata-item">
+                    <span className="metadata-label">Bytes:</span>
+                    <span className="metadata-value">
+                      {new Blob([previewContent]).size.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="metadata-item">
+                    <span className="metadata-label">Language:</span>
+                    <span className="metadata-value">
+                      {getLanguageFromExtension(ext)}
+                    </span>
+                  </div>
+                </>
+              )}
+              {IMAGE_EXTENSIONS.includes(ext) && (
+                <div className="metadata-item">
+                  <span className="metadata-label">Format:</span>
+                  <span className="metadata-value">Image ({ext.substring(1).toUpperCase()})</span>
+                </div>
+              )}
+              {VIDEO_EXTENSIONS.includes(ext) && (
+                <div className="metadata-item">
+                  <span className="metadata-label">Format:</span>
+                  <span className="metadata-value">Video ({ext.substring(1).toUpperCase()})</span>
+                </div>
+              )}
+              {PDF_EXTENSIONS.includes(ext) && (
+                <div className="metadata-item">
+                  <span className="metadata-label">Format:</span>
+                  <span className="metadata-value">PDF Document</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // プレビューコンテンツのレンダリング
@@ -976,7 +1102,7 @@ function ImageExplorer() {
         </div>
 
         {/* プレビューパネル */}
-        <div className="preview-container">
+        <div className={`preview-container ${showMetadataSidebar ? 'with-sidebar' : ''}`}>
           <div className="preview-panel" ref={previewPanelRef}>
             {previewContent ? (
               <div className="preview-content">
@@ -1003,6 +1129,7 @@ function ImageExplorer() {
                   <div><kbd>Ctrl+0</kbd> Reset text size</div>
                   <div><kbd>f</kbd> Fit to window</div>
                   <div><kbd>o</kbd> Original size</div>
+                  <div><kbd>i/F1</kbd> Toggle metadata</div>
                   <div><kbd>Backspace</kbd> Go up</div>
                   <div><kbd>Home</kbd> Go home</div>
                 </div>
@@ -1010,6 +1137,9 @@ function ImageExplorer() {
             )}
           </div>
         </div>
+
+        {/* メタ情報サイドバー */}
+        {showMetadataSidebar && renderMetadataSidebar()}
       </main>
 
       {/* ステータスバー */}

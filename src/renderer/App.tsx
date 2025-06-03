@@ -325,10 +325,6 @@ function ImageExplorer() {
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // サポートされているファイルのみをフィルタリング
-  const supportedFiles = files.filter(file => 
-    file.isFile && SUPPORTED_EXTENSIONS.includes(file.extension.toLowerCase())
-  );
 
   // ディレクトリとすべてのファイルを表示（バイナリファイルも含む）+ 検索フィルタリング
   const displayItems = files.filter(file => {
@@ -976,7 +972,7 @@ function ImageExplorer() {
       {/* ステータスバー */}
       <footer className="status-bar">
         <span>{status}</span>
-        <span>Folders: {displayItems.filter(item => item.isDirectory).length} | Files: {supportedFiles.length}</span>
+        <span>Folders: {displayItems.filter(item => item.isDirectory).length} | Files: {displayItems.filter(item => item.isFile).length}</span>
       </footer>
     </div>
   );

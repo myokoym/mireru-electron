@@ -1,6 +1,6 @@
 {
-  "name": "electron-react-boilerplate",
-  "description": "A foundation for scalable desktop apps",
+  "name": "mireru-electron",
+  "description": "Keyboard-friendly file explorer with vim-like navigation",
   "keywords": [
     "electron",
     "boilerplate",

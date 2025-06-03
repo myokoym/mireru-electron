@@ -3,6 +3,21 @@
 ## 概要
 Mireruは、キーボード操作に特化したファイルエクスプローラーです。Ruby実装の[mireru](./reference/)をElectron + React + TypeScriptで再実装したものです。
 
+## コンセプト
+- **気軽に使えるexplorer**: ファイル管理を直感的で効率的に。vim風キーバインドによる高速ナビゲーション
+- **VS Codeのような詳細表示**: 開発者に馴染みのあるUI/UXで、豊富なファイル情報とメタデータを提供
+
+### 設計方針
+**気軽さ（Accessibility）:**
+- 起動が早く、軽量で応答性の高いUI
+- コマンドライン引数による柔軟な起動
+- 直感的なキーバインドと検索機能
+
+**詳細性（Rich Information）:**
+- VS Code風の白基調テーマとアイコン体系
+- 3パネル構成（ファイルリスト・プレビュー・メタ情報）
+- シンタックスハイライト、EXIF情報、権限表示
+
 ## 技術スタック
 - **フレームワーク**: Electron + React 19 + TypeScript
 - **ベース**: electron-react-boilerplate

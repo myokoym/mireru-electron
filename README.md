@@ -1,14 +1,20 @@
-# Mireru - Image Explorer
+# Mireru Electron - File Explorer
 
-A keyboard-friendly image file explorer built with Electron and React.
+A keyboard-friendly file explorer with VS Code-like UI, built with Electron and React.
+
+## Concept
+
+- **気軽に使えるexplorer**: Intuitive and efficient file management with vim-style keybindings
+- **VS Code-like detailed view**: Developer-friendly UI/UX with rich file information and metadata
 
 ## Features
 
-- 🖼️ **Image-focused**: Only displays image files (jpg, png, gif, bmp, webp, svg)
-- ⌨️ **Keyboard navigation**: vim-like controls (j/k for navigation)
-- 📁 **Folder browsing**: Navigate through directories to find images
-- 🔍 **Real-time preview**: Automatic image preview with zoom controls
-- 🎯 **Minimalist UI**: Clean, distraction-free interface
+- 📁 **Multi-file support**: Text, images, videos, PDFs, and binary files
+- ⌨️ **Vim-style navigation**: Fast keyboard controls (n/p, hjkl, /, etc.)
+- 🔍 **Instant search**: Real-time file filtering with search-focused UI
+- 📋 **Rich previews**: Syntax highlighting, image zoom, video playback
+- 🏠 **Smart navigation**: Command-line arguments, home button to startup directory
+- 📊 **File details**: Size, modification dates, and metadata display
 
 ## Development
 
@@ -55,14 +61,28 @@ npm run build
 
 ## Keyboard Shortcuts
 
-- `j/k` or `↑/↓` - Navigate up/down
-- `Enter` - Open folder or preview image
-- `Space` - Preview image only
-- `+/-` - Zoom in/out
+### Navigation
+- `n/p` or `↑/↓` - Navigate next/previous file
+- `G` - Go to last item
+- `Ctrl+g` - Go to first item
+- `Enter/e` - Open folder or preview file
+- `Space` - Preview file only
+- `Backspace` - Go up one level
+- `Home` - Go to startup directory
+
+### Search
+- `/` - Focus search box
+- `Escape` - Exit search (keep text)
+- `Shift+Escape` - Clear search
+
+### Preview & File Operations
+- `+/-` - Zoom in/out (images)
 - `f` - Fit to window
 - `o` - Original size
-- `Backspace` - Go up one level
-- `Home` - Go to home directory
+- `hjkl` - Scroll preview (vim-style)
+- `HJKL` - Scroll preview (large steps)
+- `r` - Reload current file
+- `Ctrl+Shift+C` - Copy file path
 
 <br>
 

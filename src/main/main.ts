@@ -16,6 +16,7 @@ import fs from 'fs';
 import os from 'os';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import { parseInitialDirectory } from './argument-parser';
 
 class AppUpdater {
   constructor() {
@@ -193,37 +194,7 @@ ipcMain.handle('get-home-directory', () => {
 });
 
 ipcMain.handle('get-initial-directory', () => {
-  // コマンドライン引数から初期ディレクトリを取得
-  
-  // 開発環境と本番環境で引数の位置が異なる
-  let args: string[];
-  if (process.argv[0].includes('electron') && process.argv[1] === '.') {
-    // 開発環境: electron . args...
-    args = process.argv.slice(2);
-  } else {
-    // 本番環境: ./app args...
-    args = process.argv.slice(1);
-  }
-  
-  if (args.length > 0) {
-    const targetPath = args[0];
-    
-    try {
-      // パスが存在し、ディレクトリかチェック
-      const stat = fs.statSync(targetPath);
-      if (stat.isDirectory()) {
-        return path.resolve(targetPath);
-      } else if (stat.isFile()) {
-        // ファイルが指定された場合は親ディレクトリを返す
-        return path.dirname(path.resolve(targetPath));
-      }
-    } catch (error) {
-      console.warn(`Invalid path specified: ${targetPath}, falling back to home directory`);
-    }
-  }
-  
-  // 引数がない、または無効な場合はホームディレクトリ
-  return os.homedir();
+  return parseInitialDirectory(process.argv);
 });
 
 ipcMain.handle('get-parent-directory', (event, currentPath: string) => {

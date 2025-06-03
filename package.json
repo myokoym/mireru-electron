@@ -1,5 +1,6 @@
 {
   "name": "mireru-electron",
+  "version": "0.1.0",
   "description": "Keyboard-friendly file explorer with vim-like navigation",
   "keywords": [
     "electron",

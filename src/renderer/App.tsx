@@ -341,6 +341,12 @@ function ImageExplorer() {
   // メタ情報サイドバー
   const [showMetadataSidebar, setShowMetadataSidebar] = useState<boolean>(false);
 
+  // サイドバー幅制御
+  const [fileListWidth, setFileListWidth] = useState<number>(300);
+  const [metadataWidth, setMetadataWidth] = useState<number>(300);
+  const [isResizingFileList, setIsResizingFileList] = useState<boolean>(false);
+  const [isResizingMetadata, setIsResizingMetadata] = useState<boolean>(false);
+
 
   // ディレクトリとすべてのファイルを表示（バイナリファイルも含む）+ 検索フィルタリング
   const displayItems = files.filter(file => {
@@ -719,6 +725,39 @@ function ImageExplorer() {
     };
   }, [handleKeyPress]);
 
+  // リサイズハンドラー
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isResizingFileList) {
+      const newWidth = Math.max(200, Math.min(600, e.clientX));
+      setFileListWidth(newWidth);
+    }
+    if (isResizingMetadata) {
+      const newWidth = Math.max(250, Math.min(500, window.innerWidth - e.clientX));
+      setMetadataWidth(newWidth);
+    }
+  }, [isResizingFileList, isResizingMetadata]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsResizingFileList(false);
+    setIsResizingMetadata(false);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  }, []);
+
+  useEffect(() => {
+    if (isResizingFileList || isResizingMetadata) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isResizingFileList, isResizingMetadata, handleMouseMove, handleMouseUp]);
+
   // ナビゲーション - 起動時のディレクトリに戻る
   const goHome = async () => {
     try {
@@ -821,7 +860,12 @@ function ImageExplorer() {
     const ext = item.extension.toLowerCase();
     
     return (
-      <div className="metadata-sidebar">
+      <div className="metadata-sidebar" style={{ width: `${metadataWidth}px` }}>
+        {/* メタデータサイドバーリサイザー */}
+        <div 
+          className="resize-handle resize-handle-left"
+          onMouseDown={() => setIsResizingMetadata(true)}
+        />
         <div className="metadata-header">
           <h3>File Information</h3>
           <button 
@@ -1082,7 +1126,7 @@ function ImageExplorer() {
       {/* メインコンテンツ */}
       <main className="main-content">
         {/* ファイル・ディレクトリリスト */}
-        <div className="file-list-container">
+        <div className="file-list-container" style={{ width: `${fileListWidth}px` }}>
           <div className="file-list" ref={fileListRef}>
             {displayItems.map((item, index) => (
               <div
@@ -1099,10 +1143,20 @@ function ImageExplorer() {
               </div>
             ))}
           </div>
+          {/* ファイルリストリサイザー */}
+          <div 
+            className="resize-handle resize-handle-right"
+            onMouseDown={() => setIsResizingFileList(true)}
+          />
         </div>
 
         {/* プレビューパネル */}
-        <div className={`preview-container ${showMetadataSidebar ? 'with-sidebar' : ''}`}>
+        <div 
+          className="preview-container"
+          style={{ 
+            marginRight: showMetadataSidebar ? `${metadataWidth}px` : '0'
+          }}
+        >
           <div className="preview-panel" ref={previewPanelRef}>
             {previewContent ? (
               <div className="preview-content">

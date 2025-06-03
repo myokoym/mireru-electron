@@ -154,10 +154,12 @@ body {
 }
 
 .file-list-container {
-  width: 300px;
+  min-width: 200px;
+  max-width: 600px;
   border-right: 1px solid #e0e0e0;
   background: #fafafa;
   overflow: hidden;
+  position: relative;
 }
 
 .file-list {
@@ -228,9 +230,7 @@ body {
   transition: margin-right 0.3s ease;
 }
 
-.preview-container.with-sidebar {
-  margin-right: 300px;
-}
+/* プレビューコンテナのmargin-rightは動的に設定されるため、このクラスは削除 */
 
 .preview-panel {
   flex: 1;
@@ -439,7 +439,8 @@ kbd {
   position: absolute;
   top: 0;
   right: 0;
-  width: 300px;
+  min-width: 250px;
+  max-width: 500px;
   height: 100%;
   background: #ffffff;
   border-left: 1px solid #e0e0e0;
@@ -558,4 +559,41 @@ kbd {
 
 .metadata-content::-webkit-scrollbar-thumb:hover {
   background: #a0a0a0;
+}
+
+/* リサイズハンドル */
+.resize-handle {
+  position: absolute;
+  z-index: 20;
+  background: transparent;
+  cursor: col-resize;
+  transition: background-color 0.2s;
+}
+
+.resize-handle:hover {
+  background: rgba(0, 122, 204, 0.2);
+}
+
+.resize-handle-right {
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  border-right: 1px solid transparent;
+}
+
+.resize-handle-right:hover {
+  border-right: 1px solid #007acc;
+}
+
+.resize-handle-left {
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  border-left: 1px solid transparent;
+}
+
+.resize-handle-left:hover {
+  border-left: 1px solid #007acc;
 }

@@ -194,18 +194,35 @@ ipcMain.handle('get-home-directory', () => {
 
 ipcMain.handle('get-initial-directory', () => {
   // コマンドライン引数から初期ディレクトリを取得
-  const args = process.argv.slice(2); // node, electron実行ファイルを除く
+  console.log('All process.argv:', process.argv);
+  
+  // 開発環境と本番環境で引数の位置が異なる
+  let args: string[];
+  if (process.argv[0].includes('electron')) {
+    // 開発環境: electron . args...
+    args = process.argv.slice(2);
+  } else {
+    // 本番環境: ./app args...
+    args = process.argv.slice(1);
+  }
+  
+  console.log('Parsed args:', args);
   
   if (args.length > 0) {
     const targetPath = args[0];
+    console.log('Target path:', targetPath);
+    
     try {
       // パスが存在し、ディレクトリかチェック
       const stat = fs.statSync(targetPath);
       if (stat.isDirectory()) {
+        console.log('Using directory:', path.resolve(targetPath));
         return path.resolve(targetPath);
       } else if (stat.isFile()) {
         // ファイルが指定された場合は親ディレクトリを返す
-        return path.dirname(path.resolve(targetPath));
+        const parentDir = path.dirname(path.resolve(targetPath));
+        console.log('Using parent directory of file:', parentDir);
+        return parentDir;
       }
     } catch (error) {
       console.warn(`Invalid path specified: ${targetPath}, falling back to home directory`);
@@ -213,7 +230,9 @@ ipcMain.handle('get-initial-directory', () => {
   }
   
   // 引数がない、または無効な場合はホームディレクトリ
-  return os.homedir();
+  const homeDir = os.homedir();
+  console.log('Using home directory:', homeDir);
+  return homeDir;
 });
 
 ipcMain.handle('get-parent-directory', (event, currentPath: string) => {

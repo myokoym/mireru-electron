@@ -166,11 +166,26 @@ npm install
 # 開発サーバー起動
 npm start
 
+# 引数付きで起動（開発環境）
+npm start /path/to/directory
+
 # プロセス終了
 pkill -f "mireru-electron"
 
 # 再起動
-pkill -f "mireru-electron" && npm start &
+./restart.sh
+```
+
+### 本番ビルド・配布
+```bash
+# 実行可能ファイル作成
+npm run package
+
+# AppImage実行（引数付き）
+./release/build/Mireru-0.1.0.AppImage /path/to/directory
+
+# 引数なし（ホームディレクトリから起動）
+./release/build/Mireru-0.1.0.AppImage
 ```
 
 ### 開発ワークフロー

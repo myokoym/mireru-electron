@@ -423,6 +423,27 @@ function ImageExplorer() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   };
 
+  // ファイルパスをクリップボードにコピー
+  const copyCurrentFilePath = async () => {
+    if (!displayItems[selectedIndex]) return;
+    
+    const currentItem = displayItems[selectedIndex];
+    const pathToCopy = currentItem.path;
+    
+    try {
+      const success = await window.electronAPI.copyToClipboard(pathToCopy);
+      if (success) {
+        setStatus(`Copied: ${pathToCopy}`);
+        // 2秒後にステータスを元に戻す
+        setTimeout(() => setStatus('Ready'), 2000);
+      } else {
+        setStatus('Failed to copy to clipboard');
+      }
+    } catch (error) {
+      setStatus('Failed to copy to clipboard');
+    }
+  };
+
   // ファイル/ディレクトリを開く
   const openItem = async (item: FileItem) => {
     if (item.isDirectory) {
@@ -434,6 +455,18 @@ function ImageExplorer() {
 
   // キーボード操作
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
+    // Ctrl+Shift+C でファイルパスをコピー
+    if (event.ctrlKey && event.shiftKey && event.key === 'C') {
+      event.preventDefault();
+      copyCurrentFilePath();
+      return;
+    }
+    
+    // Ctrl+Cは標準のコピー動作（選択範囲）に任せる
+    if (event.ctrlKey && event.key === 'c') {
+      return; // デフォルト動作を許可
+    }
+    
     switch (event.key) {
       case 'n':
       case 'ArrowDown':
@@ -569,7 +602,7 @@ function ImageExplorer() {
         scrollPreviewPanel(17 * 10, 0); // 大きく右スクロール
         break;
     }
-  }, [displayItems, selectedIndex]);
+  }, [displayItems, selectedIndex, copyCurrentFilePath]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
@@ -806,6 +839,8 @@ function ImageExplorer() {
                   <div><kbd>HJKL</kbd> Scroll preview (large)</div>
                   <div><kbd>Enter/e</kbd> Open folder/file</div>
                   <div><kbd>Space</kbd> Preview file</div>
+                  <div><kbd>Ctrl+C</kbd> Copy selected text</div>
+                  <div><kbd>Ctrl+Shift+C</kbd> Copy file path</div>
                   <div><kbd>r</kbd> Reload current file</div>
                   <div><kbd>+/-</kbd> Zoom in/out (images)</div>
                   <div><kbd>f</kbd> Fit to window</div>

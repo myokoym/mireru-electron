@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, clipboard } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
@@ -195,6 +195,16 @@ ipcMain.handle('get-home-directory', () => {
 ipcMain.handle('get-parent-directory', (event, currentPath: string) => {
   const parent = path.dirname(currentPath);
   return parent !== currentPath ? parent : null;
+});
+
+ipcMain.handle('copy-to-clipboard', (event, text: string) => {
+  try {
+    clipboard.writeText(text);
+    return true;
+  } catch (error) {
+    console.error('Failed to copy to clipboard:', error);
+    return false;
+  }
 });
 
 ipcMain.on('ipc-example', async (event, arg) => {

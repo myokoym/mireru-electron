@@ -34,6 +34,8 @@ const electronAPI = {
     ipcRenderer.invoke('get-home-directory'),
   getParentDirectory: (currentPath: string) => 
     ipcRenderer.invoke('get-parent-directory', currentPath),
+  copyToClipboard: (text: string) => 
+    ipcRenderer.invoke('copy-to-clipboard', text),
 };
 
 contextBridge.exposeInMainWorld('electron', electronHandler);

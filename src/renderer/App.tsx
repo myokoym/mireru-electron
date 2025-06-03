@@ -316,6 +316,7 @@ function FileIcon({
 
 function ImageExplorer() {
   const [currentPath, setCurrentPath] = useState<string>('');
+  const [initialPath, setInitialPath] = useState<string>(''); // 起動時のディレクトリを保存
   const [files, setFiles] = useState<FileItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [currentScale, setCurrentScale] = useState<number>(1);
@@ -352,9 +353,10 @@ function ImageExplorer() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        const initialPath = await window.electronAPI.getInitialDirectory();
-        setCurrentPath(initialPath);
-        await loadDirectory(initialPath);
+        const startupPath = await window.electronAPI.getInitialDirectory();
+        setInitialPath(startupPath); // 起動時のディレクトリを保存
+        setCurrentPath(startupPath);
+        await loadDirectory(startupPath);
         setStatus('Ready');
       } catch (error) {
         setStatus(`Error: ${error.message}`);
@@ -686,11 +688,17 @@ function ImageExplorer() {
     };
   }, [handleKeyPress]);
 
-  // ナビゲーション
+  // ナビゲーション - 起動時のディレクトリに戻る
   const goHome = async () => {
     try {
-      const homePath = await window.electronAPI.getHomeDirectory();
-      await loadDirectory(homePath);
+      if (initialPath) {
+        await loadDirectory(initialPath);
+      } else {
+        // 初期パスが設定されていない場合はgetInitialDirectoryを再実行
+        const startupPath = await window.electronAPI.getInitialDirectory();
+        setInitialPath(startupPath);
+        await loadDirectory(startupPath);
+      }
     } catch (error) {
       setStatus(`Error: ${error.message}`);
     }
@@ -869,7 +877,7 @@ function ImageExplorer() {
       {/* ヘッダー */}
       <header className="header">
         <div className="path-bar">
-          <button onClick={goHome} className="path-btn" title="Home (Home)">
+          <button onClick={goHome} className="path-btn" title="Go to startup directory (Home)">
             <span dangerouslySetInnerHTML={{ __html: generateSVGIcon('home', 16) }} />
           </button>
           <button onClick={goUp} className="path-btn" title="Go up (Backspace)">

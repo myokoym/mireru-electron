@@ -135,7 +135,9 @@ src/
 - `get-directory-contents` - ディレクトリ内容取得
 - `read-file` - ファイル内容読み込み
 - `get-home-directory` - ホームディレクトリパス取得
+- `get-initial-directory` - コマンドライン引数から初期ディレクトリ取得
 - `get-parent-directory` - 親ディレクトリパス取得
+- `copy-to-clipboard` - クリップボードへのテキストコピー
 
 ### 状態管理
 ```typescript
@@ -181,11 +183,12 @@ pkill -f "mireru-electron"
 # 実行可能ファイル作成
 npm run package
 
-# AppImage実行（引数付き）
-./release/build/Mireru-0.1.0.AppImage /path/to/directory
-
-# 引数なし（ホームディレクトリから起動）
-./release/build/Mireru-0.1.0.AppImage
+# AppImage実行（各種引数例）
+./release/build/Mireru-0.1.0.AppImage /path/to/directory  # 絶対パス
+./release/build/Mireru-0.1.0.AppImage .                   # 現在のディレクトリ
+./release/build/Mireru-0.1.0.AppImage ./src              # 相対パス
+./release/build/Mireru-0.1.0.AppImage file.txt           # ファイル（親ディレクトリで起動）
+./release/build/Mireru-0.1.0.AppImage                    # 引数なし（ホーム）
 ```
 
 ### 開発ワークフロー
@@ -244,10 +247,13 @@ npm run build
 npm run package
 ```
 
-### デバッグ
+### テスト・デバッグ
+- **単体テスト**: Jest + TypeScript (`npm test`)
+- **引数解析テスト**: `src/__tests__/argument-parser.test.ts`
 - **レンダラープロセス**: ホットリロード対応
 - **メインプロセス**: electronmon による自動再起動
 - **DevTools**: 開発環境で自動利用可能
+- **デバッグログ**: 本番ビルドでの引数解析状況を追跡
 
 ## パフォーマンス最適化
 

@@ -113,6 +113,18 @@ body {
 .file-icon {
   margin-right: 8px;
   font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.file-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .file-name {

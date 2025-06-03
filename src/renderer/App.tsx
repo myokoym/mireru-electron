@@ -129,6 +129,180 @@ const getLanguageFromExtension = (extension: string): string => {
   return languageMap[ext] || 'text';
 };
 
+// SVGアイコン生成関数
+const generateSVGIcon = (type: string, size: number = 16): string => {
+  const svgStart = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+  const svgEnd = '</svg>';
+  
+  switch (type) {
+    case 'folder':
+      return `${svgStart}
+        <path d="M2 3c0-.6.4-1 1-1h4l2 2h6c.6 0 1 .4 1 1v8c0 .6-.4 1-1 1H3c-.6 0-1-.4-1-1V3z" 
+              fill="#54aeff" stroke="#0066cc" stroke-width="0.5"/>
+      ${svgEnd}`;
+      
+    case 'image':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#90EE90" stroke="#228B22" stroke-width="0.5" rx="1"/>
+        <circle cx="5" cy="6" r="1.5" fill="#228B22"/>
+        <path d="M3 11l3-3 2 2 4-4 2 2v3z" fill="#228B22"/>
+      ${svgEnd}`;
+      
+    case 'text':
+      return `${svgStart}
+        <rect x="2" y="1" width="10" height="14" fill="#f8f9fa" stroke="#666" stroke-width="0.5" rx="1"/>
+        <path d="M4 3h6M4 6h6M4 9h4M4 12h5" stroke="#333" stroke-width="0.8" stroke-linecap="round"/>
+      ${svgEnd}`;
+      
+    case 'video':
+      return `${svgStart}
+        <rect x="1" y="3" width="14" height="10" fill="#ff6b6b" stroke="#cc0000" stroke-width="0.5" rx="1"/>
+        <path d="M6 6l4 2-4 2z" fill="white"/>
+      ${svgEnd}`;
+      
+    case 'pdf':
+      return `${svgStart}
+        <rect x="2" y="1" width="10" height="14" fill="#ff4757" stroke="#cc0000" stroke-width="0.5" rx="1"/>
+        <text x="8" y="9" text-anchor="middle" fill="white" font-size="6" font-weight="bold">PDF</text>
+      ${svgEnd}`;
+      
+    case 'binary':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#6c757d" stroke="#495057" stroke-width="0.5" rx="1"/>
+        <text x="8" y="6" text-anchor="middle" fill="white" font-size="3" font-family="monospace">01</text>
+        <text x="8" y="10" text-anchor="middle" fill="white" font-size="3" font-family="monospace">10</text>
+      ${svgEnd}`;
+      
+    // 言語固有アイコン
+    case 'javascript':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#f7df1e" stroke="#e6c200" stroke-width="0.5" rx="2"/>
+        <text x="8" y="10" text-anchor="middle" fill="#323330" font-size="7" font-weight="bold">JS</text>
+      ${svgEnd}`;
+      
+    case 'typescript':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#3178c6" stroke="#2c5aa0" stroke-width="0.5" rx="2"/>
+        <text x="8" y="10" text-anchor="middle" fill="white" font-size="7" font-weight="bold">TS</text>
+      ${svgEnd}`;
+      
+    case 'python':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#3776ab" stroke="#2d5a87" stroke-width="0.5" rx="2"/>
+        <circle cx="6" cy="6" r="2" fill="#ffd43b"/>
+        <circle cx="10" cy="10" r="2" fill="#4b8bbe"/>
+      ${svgEnd}`;
+      
+    case 'ruby':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#cc342d" stroke="#a02622" stroke-width="0.5" rx="2"/>
+        <polygon points="8,4 11,7 8,12 5,7" fill="#fff" stroke="#cc342d" stroke-width="0.3"/>
+      ${svgEnd}`;
+      
+    case 'java':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#ed8b00" stroke="#c77000" stroke-width="0.5" rx="2"/>
+        <circle cx="8" cy="8" r="3" fill="#5382a1"/>
+        <text x="8" y="10" text-anchor="middle" fill="white" font-size="5" font-weight="bold">J</text>
+      ${svgEnd}`;
+      
+    case 'go':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#00add8" stroke="#0087a8" stroke-width="0.5" rx="2"/>
+        <text x="8" y="9" text-anchor="middle" fill="white" font-size="6" font-weight="bold">GO</text>
+      ${svgEnd}`;
+      
+    case 'rust':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#ce422b" stroke="#a03220" stroke-width="0.5" rx="2"/>
+        <polygon points="8,5 10,7 8,11 6,7" fill="#fff"/>
+      ${svgEnd}`;
+      
+    case 'php':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#777bb4" stroke="#6b6ca3" stroke-width="0.5" rx="2"/>
+        <text x="8" y="10" text-anchor="middle" fill="white" font-size="6" font-weight="bold">PHP</text>
+      ${svgEnd}`;
+      
+    case 'html':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#e34c26" stroke="#c23616" stroke-width="0.5" rx="2"/>
+        <text x="8" y="6" text-anchor="middle" fill="white" font-size="4" font-weight="bold">&lt;</text>
+        <text x="8" y="10" text-anchor="middle" fill="white" font-size="4" font-weight="bold">&gt;</text>
+      ${svgEnd}`;
+      
+    case 'css':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#1572b6" stroke="#0e5a8a" stroke-width="0.5" rx="2"/>
+        <text x="8" y="10" text-anchor="middle" fill="white" font-size="6" font-weight="bold">CSS</text>
+      ${svgEnd}`;
+      
+    case 'json':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#292929" stroke="#1a1a1a" stroke-width="0.5" rx="2"/>
+        <text x="5" y="8" fill="#ffd700" font-size="6">{</text>
+        <text x="11" y="8" fill="#ffd700" font-size="6">}</text>
+      ${svgEnd}`;
+      
+    case 'markdown':
+      return `${svgStart}
+        <rect x="2" y="2" width="12" height="12" fill="#083fa1" stroke="#062d7a" stroke-width="0.5" rx="2"/>
+        <text x="8" y="10" text-anchor="middle" fill="white" font-size="7" font-weight="bold">M</text>
+      ${svgEnd}`;
+      
+    default:
+      return `${svgStart}
+        <rect x="2" y="1" width="10" height="14" fill="#e9ecef" stroke="#adb5bd" stroke-width="0.5" rx="1"/>
+        <text x="8" y="9" text-anchor="middle" fill="#495057" font-size="8">?</text>
+      ${svgEnd}`;
+  }
+};
+
+// ファイルアイコンコンポーネント（未定義拡張子の非同期判定対応）
+function FileIcon({ 
+  item, 
+  getFileIcon, 
+  detectFileType 
+}: { 
+  item: FileItem; 
+  getFileIcon: (extension: string, filePath?: string) => string;
+  detectFileType: (filePath: string) => Promise<'text' | 'binary'>;
+}) {
+  const [iconHtml, setIconHtml] = useState<string>('');
+  
+  useEffect(() => {
+    const updateIcon = async () => {
+      if (item.isDirectory) {
+        setIconHtml(generateSVGIcon('folder'));
+        return;
+      }
+      
+      // 定義済み拡張子は即座に表示
+      if (SUPPORTED_EXTENSIONS.includes(item.extension.toLowerCase())) {
+        setIconHtml(getFileIcon(item.extension, item.path));
+        return;
+      }
+      
+      // 未定義拡張子は非同期で判定
+      try {
+        await detectFileType(item.path);
+        setIconHtml(getFileIcon(item.extension, item.path));
+      } catch (error) {
+        setIconHtml(generateSVGIcon('binary'));
+      }
+    };
+    
+    updateIcon();
+  }, [item.path, item.extension, item.isDirectory]);
+  
+  return (
+    <span 
+      className="file-icon"
+      dangerouslySetInnerHTML={{ __html: iconHtml }}
+    />
+  );
+}
+
 function ImageExplorer() {
   const [currentPath, setCurrentPath] = useState<string>('');
   const [files, setFiles] = useState<FileItem[]>([]);
@@ -139,6 +313,9 @@ function ImageExplorer() {
   
   // プレビューパネルのスクロール制御用ref
   const previewPanelRef = useRef<HTMLDivElement>(null);
+  
+  // ファイル判定結果のキャッシュ
+  const [fileTypeCache, setFileTypeCache] = useState<Map<string, 'text' | 'binary'>>(new Map());
 
   // サポートされているファイルのみをフィルタリング
   const supportedFiles = files.filter(file => 
@@ -202,13 +379,39 @@ function ImageExplorer() {
   };
 
   // ファイルアイコンの取得
-  const getFileIcon = (extension: string): string => {
+  const getFileIcon = (extension: string, filePath?: string): string => {
     const ext = extension.toLowerCase();
-    if (IMAGE_EXTENSIONS.includes(ext)) return '🖼️';
-    if (TEXT_EXTENSIONS.includes(ext)) return '📄';
-    if (VIDEO_EXTENSIONS.includes(ext)) return '🎬';
-    if (PDF_EXTENSIONS.includes(ext)) return '📋';
-    return '📄';
+    
+    // 画像・動画・PDF
+    if (IMAGE_EXTENSIONS.includes(ext)) return generateSVGIcon('image');
+    if (VIDEO_EXTENSIONS.includes(ext)) return generateSVGIcon('video');
+    if (PDF_EXTENSIONS.includes(ext)) return generateSVGIcon('pdf');
+    
+    // 言語固有アイコン
+    if (['.js', '.jsx'].includes(ext)) return generateSVGIcon('javascript');
+    if (['.ts', '.tsx'].includes(ext)) return generateSVGIcon('typescript');
+    if (['.py'].includes(ext)) return generateSVGIcon('python');
+    if (['.rb'].includes(ext)) return generateSVGIcon('ruby');
+    if (['.java'].includes(ext)) return generateSVGIcon('java');
+    if (['.go'].includes(ext)) return generateSVGIcon('go');
+    if (['.rs'].includes(ext)) return generateSVGIcon('rust');
+    if (['.php'].includes(ext)) return generateSVGIcon('php');
+    if (['.html', '.htm'].includes(ext)) return generateSVGIcon('html');
+    if (['.css', '.scss', '.sass', '.less'].includes(ext)) return generateSVGIcon('css');
+    if (['.json'].includes(ext)) return generateSVGIcon('json');
+    if (['.md', '.markdown'].includes(ext)) return generateSVGIcon('markdown');
+    
+    // その他の定義済みテキストファイル
+    if (TEXT_EXTENSIONS.includes(ext)) return generateSVGIcon('text');
+    
+    // 未定義拡張子 - キャッシュから判定結果を取得
+    if (filePath && fileTypeCache.has(filePath)) {
+      const fileType = fileTypeCache.get(filePath);
+      return fileType === 'text' ? generateSVGIcon('text') : generateSVGIcon('binary');
+    }
+    
+    // デフォルト（判定前）
+    return generateSVGIcon('binary');
   };
 
   // ファイルサイズの書式設定
@@ -440,6 +643,29 @@ function ImageExplorer() {
     }
   };
 
+  // 未定義拡張子ファイルの型判定（非同期、キャッシュ付き）
+  const detectFileType = async (filePath: string): Promise<'text' | 'binary'> => {
+    // キャッシュから取得
+    if (fileTypeCache.has(filePath)) {
+      return fileTypeCache.get(filePath)!;
+    }
+    
+    try {
+      // メインプロセスで判定
+      const result = await window.electronAPI.readFile(filePath);
+      const detectedType = result.type === 'text' ? 'text' : 'binary';
+      
+      // キャッシュに保存
+      setFileTypeCache(prev => new Map(prev.set(filePath, detectedType)));
+      
+      return detectedType;
+    } catch (error) {
+      // エラーの場合はバイナリとして扱う
+      setFileTypeCache(prev => new Map(prev.set(filePath, 'binary')));
+      return 'binary';
+    }
+  };
+
   // プレビューコンテンツのレンダリング
   const renderPreviewContent = () => {
     if (!previewContent || !displayItems[selectedIndex]) return null;
@@ -553,9 +779,7 @@ function ImageExplorer() {
                 onClick={() => setSelectedIndex(index)}
                 onDoubleClick={() => openItem(item)}
               >
-                <span className="file-icon">
-                  {item.isDirectory ? '📁' : getFileIcon(item.extension)}
-                </span>
+                <FileIcon item={item} getFileIcon={getFileIcon} detectFileType={detectFileType} />
                 <span className="file-name">{item.name}</span>
                 <span className="file-size">
                   {item.isDirectory ? '' : formatFileSize(item.size)}

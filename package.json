@@ -99,7 +99,10 @@
     ],
     "transform": {
       "\\.(ts|tsx|js|jsx)$": "ts-jest"
-    }
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(react-syntax-highlighter)/)"
+    ]
   },
   "dependencies": {
     "@electron/notarize": "^3.0.0",

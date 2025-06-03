@@ -250,6 +250,17 @@ const generateSVGIcon = (type: string, size: number = 16): string => {
         <text x="8" y="10" text-anchor="middle" fill="white" font-size="7" font-weight="bold">M</text>
       ${svgEnd}`;
       
+    case 'home':
+      return `${svgStart}
+        <path d="M8 2L2 7v7h3v-4h2v4h3V7l-6-5z" fill="#4a5568" stroke="#2d3748" stroke-width="0.5"/>
+        <rect x="6" y="6" width="4" height="4" fill="#4a5568"/>
+      ${svgEnd}`;
+      
+    case 'up':
+      return `${svgStart}
+        <path d="M8 3l5 5H10v5H6V8H3l5-5z" fill="#4a5568" stroke="#2d3748" stroke-width="0.5"/>
+      ${svgEnd}`;
+      
     default:
       return `${svgStart}
         <rect x="2" y="1" width="10" height="14" fill="#e9ecef" stroke="#adb5bd" stroke-width="0.5" rx="1"/>
@@ -859,10 +870,10 @@ function ImageExplorer() {
       <header className="header">
         <div className="path-bar">
           <button onClick={goHome} className="path-btn" title="Home (Home)">
-            🏠
+            <span dangerouslySetInnerHTML={{ __html: generateSVGIcon('home', 16) }} />
           </button>
           <button onClick={goUp} className="path-btn" title="Go up (Backspace)">
-            ⬆️
+            <span dangerouslySetInnerHTML={{ __html: generateSVGIcon('up', 16) }} />
           </button>
           <span className="current-path">{currentPath}</span>
         </div>

@@ -314,6 +314,9 @@ function ImageExplorer() {
   // プレビューパネルのスクロール制御用ref
   const previewPanelRef = useRef<HTMLDivElement>(null);
   
+  // ファイルリストのスクロール制御用ref
+  const fileListRef = useRef<HTMLDivElement>(null);
+  
   // ファイル判定結果のキャッシュ
   const [fileTypeCache, setFileTypeCache] = useState<Map<string, 'text' | 'binary'>>(new Map());
   
@@ -460,6 +463,28 @@ function ImageExplorer() {
     setSearchQuery('');
     setSelectedIndex(0);
   };
+
+  // 選択項目をビューに表示する
+  const scrollSelectedItemIntoView = useCallback((index: number) => {
+    if (!fileListRef.current) return;
+    
+    const fileListElement = fileListRef.current;
+    const selectedElement = fileListElement.children[index] as HTMLElement;
+    
+    if (!selectedElement) return;
+    
+    const containerRect = fileListElement.getBoundingClientRect();
+    const selectedRect = selectedElement.getBoundingClientRect();
+    
+    // 選択項目がコンテナの上部より上にある場合
+    if (selectedRect.top < containerRect.top) {
+      selectedElement.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+    // 選択項目がコンテナの下部より下にある場合
+    else if (selectedRect.bottom > containerRect.bottom) {
+      selectedElement.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    }
+  }, []);
 
   // ファイル/ディレクトリを開く
   const openItem = async (item: FileItem) => {
@@ -645,7 +670,7 @@ function ImageExplorer() {
         }
         break;
     }
-  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused]);
+  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused, scrollSelectedItemIntoView]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
@@ -825,6 +850,11 @@ function ImageExplorer() {
     }
   }, [selectedIndex, displayItems]);
 
+  // 選択項目変更時に自動スクロール
+  useEffect(() => {
+    scrollSelectedItemIntoView(selectedIndex);
+  }, [selectedIndex, scrollSelectedItemIntoView]);
+
   return (
     <div className="image-explorer">
       {/* ヘッダー */}
@@ -888,7 +918,7 @@ function ImageExplorer() {
       <main className="main-content">
         {/* ファイル・ディレクトリリスト */}
         <div className="file-list-container">
-          <div className="file-list">
+          <div className="file-list" ref={fileListRef}>
             {displayItems.map((item, index) => (
               <div
                 key={item.path}

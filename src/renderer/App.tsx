@@ -320,6 +320,7 @@ function ImageExplorer() {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [currentScale, setCurrentScale] = useState<number>(1);
+  const [textFontSize, setTextFontSize] = useState<number>(12);
   const [status, setStatus] = useState<string>('Initializing...');
   const [previewContent, setPreviewContent] = useState<string | null>(null);
   
@@ -529,6 +530,27 @@ function ImageExplorer() {
       return;
     }
     
+    // Ctrl+Plus でテキストサイズ拡大
+    if (event.ctrlKey && (event.key === '+' || event.key === '=')) {
+      event.preventDefault();
+      setTextFontSize(prev => Math.min(24, prev + 1));
+      return;
+    }
+    
+    // Ctrl+Minus でテキストサイズ縮小
+    if (event.ctrlKey && event.key === '-') {
+      event.preventDefault();
+      setTextFontSize(prev => Math.max(8, prev - 1));
+      return;
+    }
+    
+    // Ctrl+0 でテキストサイズリセット
+    if (event.ctrlKey && event.key === '0') {
+      event.preventDefault();
+      setTextFontSize(12);
+      return;
+    }
+    
     // Ctrl+Cは標準のコピー動作（選択範囲）に任せる
     if (event.ctrlKey && event.key === 'c') {
       return; // デフォルト動作を許可
@@ -679,7 +701,7 @@ function ImageExplorer() {
         }
         break;
     }
-  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused]);
+  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused, textFontSize]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
@@ -813,7 +835,7 @@ function ImageExplorer() {
               padding: '0',
               margin: '0',
               borderRadius: '0',
-              fontSize: '12px',
+              fontSize: `${textFontSize}px`,
               lineHeight: '1.4',
               height: '100%',
               maxHeight: 'none',
@@ -849,7 +871,7 @@ function ImageExplorer() {
     } else {
       // Hex dump for binary files
       return (
-        <pre className="preview-hex">
+        <pre className="preview-hex" style={{ fontSize: `${textFontSize}px` }}>
           {previewContent}
         </pre>
       );
@@ -977,6 +999,8 @@ function ImageExplorer() {
                   <div><kbd>Ctrl+Shift+C</kbd> Copy file path</div>
                   <div><kbd>r</kbd> Reload current file</div>
                   <div><kbd>+/-</kbd> Zoom in/out (images)</div>
+                  <div><kbd>Ctrl++/-</kbd> Text size up/down</div>
+                  <div><kbd>Ctrl+0</kbd> Reset text size</div>
                   <div><kbd>f</kbd> Fit to window</div>
                   <div><kbd>o</kbd> Original size</div>
                   <div><kbd>Backspace</kbd> Go up</div>

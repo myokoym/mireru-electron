@@ -77,6 +77,8 @@ npm run build
 
 ### Preview & File Operations
 - `+/-` - Zoom in/out (images)
+- `Ctrl++/-` - Text size up/down
+- `Ctrl+0` - Reset text size
 - `f` - Fit to window
 - `o` - Original size
 - `hjkl` - Scroll preview (vim-style)

@@ -369,7 +369,7 @@ function ImageExplorer() {
         await loadDirectory(startupPath);
         setStatus('Ready');
       } catch (error) {
-        setStatus(`Error: ${error.message}`);
+        setStatus(`Error: ${error instanceof Error ? error.message : String(error)}`);
       }
     };
     initializeApp();
@@ -386,7 +386,7 @@ function ImageExplorer() {
       setCurrentPath(path);
       setStatus('Ready');
     } catch (error) {
-      setStatus(`Error: ${error.message}`);
+      setStatus(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -407,7 +407,7 @@ function ImageExplorer() {
       setStatus(`Preview: ${file.name}`);
     } catch (error) {
       setPreviewContent(null);
-      setStatus(`Preview error: ${error.message}`);
+      setStatus(`Preview error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, []);
 
@@ -770,7 +770,7 @@ function ImageExplorer() {
         await loadDirectory(startupPath);
       }
     } catch (error) {
-      setStatus(`Error: ${error.message}`);
+      setStatus(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -781,7 +781,7 @@ function ImageExplorer() {
         await loadDirectory(parentPath);
       }
     } catch (error) {
-      setStatus(`Error: ${error.message}`);
+      setStatus(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 

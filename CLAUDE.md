@@ -313,11 +313,16 @@ npm run package
 - **機能実装後**: 必ずrestart.shで再起動してテスト
 - **コード修正→テスト→再起動→コミット準備のフロー**:
   1. コードを修正・機能実装
-  2. **必須**: テストスイートを実行して全テストが通ることを確認 (`npm test`)
-  3. `./restart.sh` で再起動してテスト
+  2. **コード変更時のみ**: テストスイートを実行して全テストが通ることを確認
+     - **単体テスト**: `npm run test:unit` (約11秒) - ロジック変更時
+     - **統合テスト**: `npm run test:integration` (約13秒) - GUI変更時
+     - **全テスト**: `npm test` (約20秒、元の70秒から65%短縮)
+  3. **コード変更時のみ**: `./restart.sh` で再起動してテスト
   4. 動作確認完了後にgit add & commit
   5. わかりにくい機能はCLAUDE.mdに補足説明を追記
   6. **重要**: 機能対応完了時は必ずTODOリストのステータスを「completed」に更新
+
+**注意**: `.md`ファイルなどのドキュメント修正のみの場合は、テスト実行や再起動は不要です。
 - **引数変更**: 実際にAppImageビルドして動作確認
 - **デバッグログ**: 本番ビルドで問題が起きそうな機能はログを残す
 - **テスト**: 複雑なロジックは単体テストを作成（引数解析の例参照）
@@ -359,8 +364,22 @@ npm run package
 ```
 
 ### テスト・デバッグ
-- **単体テスト**: Jest + TypeScript (`npm test`)
-- **引数解析テスト**: `src/__tests__/argument-parser.test.ts`
+
+#### テスト実行コマンド
+- **単体テスト**: `npm run test:unit` (~11秒) - 引数解析ロジックなど
+- **統合テスト**: `npm run test:integration` (~13秒) - App コンポーネント
+- **全テスト**: `npm test` (~20秒、元の70秒から65%短縮)
+- **開発テスト**: `npm run test:watch` - ファイル変更時の自動実行
+
+#### テスト構成
+- **フレームワーク**: Jest + TypeScript + React Testing Library
+- **モック化**: Electron API、react-syntax-highlighter の完全モック
+- **ファイル構成**:
+  - `src/__tests__/setup.ts` - 共通モック・設定
+  - `src/__tests__/argument-parser.test.ts` - 単体テスト
+  - `src/__tests__/App.test.tsx` - 統合テスト
+
+#### デバッグ
 - **レンダラープロセス**: ホットリロード対応
 - **メインプロセス**: electronmon による自動再起動
 - **DevTools**: 開発環境で自動利用可能

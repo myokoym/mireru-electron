@@ -50,7 +50,10 @@
     "start:main": "concurrently -k -P \"cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --watch --config ./.erb/configs/webpack.config.main.dev.ts\" \"electronmon .\" -- {@}",
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true NODE_OPTIONS=\"-r ts-node/register --no-warnings\" webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
-    "test": "jest"
+    "test": "jest",
+    "test:unit": "jest src/__tests__/argument-parser.test.ts",
+    "test:integration": "jest src/__tests__/App.test.tsx",
+    "test:watch": "jest --watch"
   },
   "browserslist": [
     "extends browserslist-config-erb"
@@ -89,6 +92,9 @@
     "setupFiles": [
       "./.erb/scripts/check-build-exists.ts"
     ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/__tests__/setup.ts"
+    ],
     "testEnvironment": "jsdom",
     "testEnvironmentOptions": {
       "url": "http://localhost/"
@@ -96,6 +102,9 @@
     "testPathIgnorePatterns": [
       "release/app/dist",
       ".erb/dll"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.(ts|tsx|js|jsx)"
     ],
     "transform": {
       "\\.(ts|tsx|js|jsx)$": "ts-jest"

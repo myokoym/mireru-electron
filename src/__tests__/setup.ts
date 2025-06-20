@@ -1,18 +1,20 @@
 // Jest テスト共通セットアップ
 import '@testing-library/jest-dom';
 
-// Electron API のモック
-Object.defineProperty(window, 'electronAPI', {
-  value: {
-    getDirectoryContents: jest.fn().mockResolvedValue([]),
-    readFile: jest.fn().mockResolvedValue({ type: 'text', content: 'test content', size: 100 }),
-    getHomeDirectory: jest.fn().mockResolvedValue('/home/user'),
-    getInitialDirectory: jest.fn().mockResolvedValue('/home/user'),
-    getParentDirectory: jest.fn().mockResolvedValue('/home'),
-    copyToClipboard: jest.fn().mockResolvedValue(undefined),
-  },
-  writable: true,
-});
+// Electron API のモック（JSDOM環境のみ）
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'electronAPI', {
+    value: {
+      getDirectoryContents: jest.fn().mockResolvedValue([]),
+      readFile: jest.fn().mockResolvedValue({ type: 'text', content: 'test content', size: 100 }),
+      getHomeDirectory: jest.fn().mockResolvedValue('/home/user'),
+      getInitialDirectory: jest.fn().mockResolvedValue('/home/user'),
+      getParentDirectory: jest.fn().mockResolvedValue('/home'),
+      copyToClipboard: jest.fn().mockResolvedValue(undefined),
+    },
+    writable: true,
+  });
+}
 
 // React Syntax Highlighter のモック
 jest.mock('react-syntax-highlighter', () => ({
@@ -52,3 +54,6 @@ jest.mock('react-syntax-highlighter/dist/esm/languages/hljs/json', () => mockLan
 jest.mock('react-syntax-highlighter/dist/esm/languages/hljs/yaml', () => mockLanguage);
 jest.mock('react-syntax-highlighter/dist/esm/languages/hljs/markdown', () => mockLanguage);
 jest.mock('react-syntax-highlighter/dist/esm/languages/hljs/sql', () => mockLanguage);
+
+// Canvas のモック（JSDOM で canvas が利用できない問題を解決）
+jest.mock('canvas', () => require('./mocks/canvas.js'));

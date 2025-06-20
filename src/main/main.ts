@@ -75,6 +75,59 @@ ipcMain.handle('get-directory-contents', async (event, dirPath: string) => {
   }
 });
 
+// テキストファイル最適化読み込み関数
+async function readTextFileOptimized(filePath: string, fileSize: number) {
+  const MAX_FULL_SIZE = 1024 * 1024; // 1MB
+  const PREVIEW_SIZE = 100 * 1024; // 100KB
+  const MAX_LINES = 1000; // 最大1000行
+  
+  try {
+    // 小さなファイルは全体を読み込み
+    if (fileSize <= MAX_FULL_SIZE) {
+      const content = await fs.promises.readFile(filePath, 'utf8');
+      return { 
+        type: 'text', 
+        content, 
+        size: fileSize,
+        isPartial: false
+      };
+    }
+    
+    // 大きなファイルは部分読み込み
+    const fd = await fs.promises.open(filePath, 'r');
+    try {
+      const buffer = Buffer.alloc(PREVIEW_SIZE);
+      const { bytesRead } = await fd.read(buffer, 0, PREVIEW_SIZE, 0);
+      
+      let content = buffer.subarray(0, bytesRead).toString('utf8');
+      
+      // 行数制限
+      const lines = content.split('\n');
+      if (lines.length > MAX_LINES) {
+        content = lines.slice(0, MAX_LINES).join('\n');
+      }
+      
+      // 不完全な最後の行を削除（文字化け防止）
+      const lastNewlineIndex = content.lastIndexOf('\n');
+      if (lastNewlineIndex > 0 && content.length > lastNewlineIndex + 1) {
+        content = content.substring(0, lastNewlineIndex);
+      }
+      
+      return {
+        type: 'text',
+        content: content + `\n\n--- Preview (first ${Math.floor(bytesRead / 1024)}KB of ${Math.floor(fileSize / 1024)}KB) ---\n--- File too large for full preview ---`,
+        size: fileSize,
+        isPartial: true,
+        previewSize: bytesRead
+      };
+    } finally {
+      await fd.close();
+    }
+  } catch (error) {
+    throw new Error(`Failed to read text file: ${error.message}`);
+  }
+}
+
 // テキストファイル判定のヘルパー関数
 function isTextFile(buffer: Buffer, extension: string): boolean {
   // 既知の拡張子は既存の分類に従う
@@ -150,9 +203,8 @@ ipcMain.handle('read-file', async (event, filePath: string) => {
         size: stat.size 
       };
     } else if (['.txt', '.md', '.js', '.jsx', '.ts', '.tsx', '.json', '.html', '.css', '.xml', '.log', '.py', '.rb', '.php', '.java', '.c', '.cpp', '.h', '.sh', '.yaml', '.yml'].includes(ext)) {
-      // Text file
-      const content = fs.readFileSync(filePath, 'utf8');
-      return { type: 'text', content, size: stat.size };
+      // Text file with size optimization
+      return await readTextFileOptimized(filePath, stat.size);
     } else if (['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv'].includes(ext)) {
       // Video file - use file URL to avoid memory issues
       return { 
@@ -168,10 +220,9 @@ ipcMain.handle('read-file', async (event, filePath: string) => {
       const buffer = fs.readFileSync(filePath, { encoding: null, flag: 'r' });
       
       if (isTextFile(buffer, ext)) {
-        // Treat as text file
+        // Treat as text file with optimization
         try {
-          const content = buffer.toString('utf8');
-          return { type: 'text', content, size: stat.size };
+          return await readTextFileOptimized(filePath, stat.size);
         } catch (error) {
           // UTF-8 decode failed, treat as binary
         }

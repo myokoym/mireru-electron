@@ -59,6 +59,7 @@ interface FileResult {
   type: 'text' | 'image' | 'video' | 'pdf' | 'hex';
   content: string;
   size: number;
+  isPartial?: boolean;
 }
 
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
@@ -323,6 +324,16 @@ function ImageExplorer() {
   const [textFontSize, setTextFontSize] = useState<number>(12);
   const [status, setStatus] = useState<string>('Initializing...');
   const [previewContent, setPreviewContent] = useState<string | null>(null);
+  const [isPreviewPartial, setIsPreviewPartial] = useState<boolean>(false);
+  
+  // 大きなファイル用の遅延レンダリング状態
+  const [isLargeFile, setIsLargeFile] = useState<boolean>(false);
+  const [showSyntaxHighlight, setShowSyntaxHighlight] = useState<boolean>(true);
+  const [syntaxHighlightTimeout, setSyntaxHighlightTimeout] = useState<NodeJS.Timeout | null>(null);
+  
+  // ファイル読み込み状態管理（プレビューキャンセル用）
+  const [isLoadingFile, setIsLoadingFile] = useState<boolean>(false);
+  const [loadingAbortController, setLoadingAbortController] = useState<AbortController | null>(null);
   
   // プレビューパネルのスクロール制御用ref
   const previewPanelRef = useRef<HTMLDivElement>(null);
@@ -385,6 +396,7 @@ function ImageExplorer() {
       
       // 状態をリセット（パフォーマンス向上のため）
       setPreviewContent(null);
+      setIsPreviewPartial(false);
       setCurrentScale(1);
       setTextFontSize(12);
       setSearchQuery('');
@@ -445,22 +457,105 @@ function ImageExplorer() {
   const previewFile = useCallback(async (file: FileItem) => {
     if (!file.isFile) {
       setPreviewContent(null);
+      setIsPreviewPartial(false);
+      setIsLargeFile(false);
+      setShowSyntaxHighlight(true);
+      setIsLoadingFile(false);
+      // 既存のタイムアウトをクリア
+      if (syntaxHighlightTimeout) {
+        clearTimeout(syntaxHighlightTimeout);
+        setSyntaxHighlightTimeout(null);
+      }
+      // 既存の読み込みをキャンセル
+      if (loadingAbortController) {
+        loadingAbortController.abort();
+        setLoadingAbortController(null);
+      }
       return;
     }
 
     try {
+      // 既存の読み込みをキャンセル
+      if (loadingAbortController) {
+        loadingAbortController.abort();
+      }
+      
+      // 新しいAbortControllerを作成
+      const abortController = new AbortController();
+      setLoadingAbortController(abortController);
+      setIsLoadingFile(true);
       setStatus('Loading preview...');
+      
+      // 既存のタイムアウトをクリア
+      if (syntaxHighlightTimeout) {
+        clearTimeout(syntaxHighlightTimeout);
+        setSyntaxHighlightTimeout(null);
+      }
+      
       const result: FileResult = await window.electronAPI.readFile(file.path);
+      
+      // キャンセルされた場合は何もしない
+      if (abortController.signal.aborted) {
+        return;
+      }
+      
       setPreviewContent(result.content);
+      setIsPreviewPartial(result.isPartial || false);
+      setIsLoadingFile(false);
+      setLoadingAbortController(null);
+      
       if (result.type === 'image') {
         setCurrentScale(1);
       }
-      setStatus(`Preview: ${file.name}`);
+      
+      // テキストファイルの場合、サイズに基づいて遅延シンタックスハイライトを判定
+      const ext = file.extension.toLowerCase();
+      if (TEXT_EXTENSIONS.includes(ext) && result.type === 'text') {
+        const contentSize = result.content.length;
+        const lineCount = result.content.split('\n').length;
+        
+        // 50KB以上または1000行以上の場合は大きなファイルとして扱う
+        if (contentSize > 50000 || lineCount > 1000) {
+          setIsLargeFile(true);
+          setShowSyntaxHighlight(false);
+          
+          // 500ms後にシンタックスハイライトを有効化
+          const timeout = setTimeout(() => {
+            setShowSyntaxHighlight(true);
+            setStatus(`Preview: ${file.name} (syntax highlighting applied)`);
+          }, 500);
+          
+          setSyntaxHighlightTimeout(timeout);
+          setStatus(`Preview: ${file.name} (large file - applying syntax highlighting...)`);
+        } else {
+          setIsLargeFile(false);
+          setShowSyntaxHighlight(true);
+        }
+      } else {
+        setIsLargeFile(false);
+        setShowSyntaxHighlight(true);
+      }
+      
+      // 部分読み込みの場合はステータスに表示
+      if (result.isPartial) {
+        setStatus(`Preview: ${file.name} (partial - showing first ${(result.size / (1024 * 1024)).toFixed(1)}MB)`);
+      } else if (!isLargeFile || result.type !== 'text') {
+        setStatus(`Preview: ${file.name}`);
+      }
     } catch (error) {
       setPreviewContent(null);
+      setIsPreviewPartial(false);
+      setIsLargeFile(false);
+      setShowSyntaxHighlight(true);
+      setIsLoadingFile(false);
+      setLoadingAbortController(null);
+      if (syntaxHighlightTimeout) {
+        clearTimeout(syntaxHighlightTimeout);
+        setSyntaxHighlightTimeout(null);
+      }
       setStatus(`Preview error: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }, []);
+  }, [syntaxHighlightTimeout, loadingAbortController]);
 
   // ファイルアイコンの取得
   const getFileIcon = (extension: string, filePath?: string): string => {
@@ -762,12 +857,19 @@ function ImageExplorer() {
         event.preventDefault();
         if (searchQuery) {
           clearSearch();
+        } else if (isLoadingFile && loadingAbortController) {
+          // ファイル読み込み中の場合はキャンセル
+          loadingAbortController.abort();
+          setLoadingAbortController(null);
+          setIsLoadingFile(false);
+          setStatus('Preview cancelled');
         } else {
           setPreviewContent(null);
+          setIsPreviewPartial(false);
         }
         break;
     }
-  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused, textFontSize, showMetadataSidebar]);
+  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused, textFontSize, showMetadataSidebar, isLoadingFile, loadingAbortController]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
@@ -1043,6 +1145,37 @@ function ImageExplorer() {
       );
     } else if (TEXT_EXTENSIONS.includes(ext)) {
       const language = getLanguageFromExtension(ext);
+      
+      // 大きなファイルでシンタックスハイライトが無効の場合は、プレーンテキストで表示
+      if (isLargeFile && !showSyntaxHighlight) {
+        return (
+          <div className="preview-text-container">
+            <pre 
+              className="preview-text-plain"
+              style={{
+                background: '#ffffff',
+                padding: '16px',
+                margin: '0',
+                borderRadius: '0',
+                fontSize: `${textFontSize}px`,
+                lineHeight: '1.4',
+                height: '100%',
+                maxHeight: 'none',
+                overflow: 'auto',
+                border: 'none',
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word',
+                fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace',
+                color: '#24292e'
+              }}
+            >
+              {previewContent}
+            </pre>
+          </div>
+        );
+      }
+      
+      // 通常のシンタックスハイライト表示
       return (
         <div className="preview-text-container">
           <SyntaxHighlighter
@@ -1105,6 +1238,7 @@ function ImageExplorer() {
       previewFile(displayItems[selectedIndex]);
     } else {
       setPreviewContent(null);
+      setIsPreviewPartial(false);
     }
   }, [selectedIndex]); // displayItemsを依存配列から削除
 
@@ -1114,6 +1248,18 @@ function ImageExplorer() {
       scrollSelectedItemIntoView(selectedIndex);
     }
   }, [selectedIndex, displayItems.length]); // scrollSelectedItemIntoViewを依存配列から削除、lengthのみ監視
+
+  // コンポーネントアンマウント時のクリーンアップ
+  useEffect(() => {
+    return () => {
+      if (syntaxHighlightTimeout) {
+        clearTimeout(syntaxHighlightTimeout);
+      }
+      if (loadingAbortController) {
+        loadingAbortController.abort();
+      }
+    };
+  }, [syntaxHighlightTimeout, loadingAbortController]);
 
   return (
     <div className="image-explorer">
@@ -1209,8 +1355,18 @@ function ImageExplorer() {
           }}
         >
           <div className="preview-panel" ref={previewPanelRef}>
-            {previewContent ? (
+            {isLoadingFile ? (
+              <div className="preview-loading">
+                <h3>Loading preview...</h3>
+                <p>Press <kbd>Escape</kbd> to cancel</p>
+              </div>
+            ) : previewContent ? (
               <div className="preview-content">
+                {isPreviewPartial && (
+                  <div className="preview-partial-warning">
+                    ⚠️ Large file - showing partial content only
+                  </div>
+                )}
                 {renderPreviewContent()}
               </div>
             ) : (

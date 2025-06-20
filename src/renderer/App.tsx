@@ -333,6 +333,9 @@ function ImageExplorer() {
   // ファイル判定結果のキャッシュ
   const [fileTypeCache, setFileTypeCache] = useState<Map<string, 'text' | 'binary'>>(new Map());
   
+  // ディレクトリキャッシュ（最大10個のディレクトリをキャッシュ）
+  const [directoryCache, setDirectoryCache] = useState<Map<string, FileItem[]>>(new Map());
+  
   // 検索機能
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
@@ -379,12 +382,60 @@ function ImageExplorer() {
   const loadDirectory = async (path: string) => {
     try {
       setStatus('Loading...');
-      const items = await window.electronAPI.getDirectoryContents(path);
-      setFiles(items);
-      setSelectedIndex(0);
+      
+      // 状態をリセット（パフォーマンス向上のため）
       setPreviewContent(null);
+      setCurrentScale(1);
+      setTextFontSize(12);
+      setSearchQuery('');
+      setIsSearchFocused(false);
+      setFileTypeCache(new Map());
+      
+      // パスを即座に更新（UIの応答性向上）
       setCurrentPath(path);
-      setStatus('Ready');
+      
+      // キャッシュから確認
+      if (directoryCache.has(path)) {
+        const cachedItems = directoryCache.get(path)!;
+        setFiles(cachedItems);
+        setSelectedIndex(0);
+        setStatus(`Ready - ${cachedItems.length} items (cached)`);
+        return;
+      }
+      
+      // ディレクトリ内容を非同期で取得
+      const items = await window.electronAPI.getDirectoryContents(path);
+      
+      // キャッシュに追加（最大10個まで）
+      setDirectoryCache(prevCache => {
+        const newCache = new Map(prevCache);
+        
+        // キャッシュサイズ制限
+        if (newCache.size >= 10) {
+          // 最も古いエントリを削除（Mapの最初のキー）
+          const firstKey = newCache.keys().next().value;
+          newCache.delete(firstKey);
+        }
+        
+        newCache.set(path, items);
+        return newCache;
+      });
+      
+      // 大きなディレクトリの場合は遅延表示でUIブロックを防ぐ
+      if (items.length > 500) {
+        setStatus(`Loading ${items.length} items...`);
+        
+        // UIの更新を次のフレームに遅延
+        setTimeout(() => {
+          setFiles(items);
+          setSelectedIndex(0);
+          setStatus(`Ready - ${items.length} items`);
+        }, 0);
+      } else {
+        setFiles(items);
+        setSelectedIndex(0);
+        setStatus(`Ready - ${items.length} items`);
+      }
     } catch (error) {
       setStatus(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }

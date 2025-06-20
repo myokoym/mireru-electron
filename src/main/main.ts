@@ -32,28 +32,35 @@ let mainWindow: BrowserWindow | null = null;
 ipcMain.handle('get-directory-contents', async (event, dirPath: string) => {
   try {
     const items = fs.readdirSync(dirPath, { withFileTypes: true, encoding: 'utf8' });
-    const result = [];
     
-    for (const item of items) {
+    // 並列処理でファイル情報を取得
+    const fileInfoPromises = items.map(async (item) => {
       const fullPath = path.join(dirPath, item.name);
-      let stat;
       
       try {
-        stat = fs.statSync(fullPath);
+        // 非同期でstat情報を取得
+        const stat = await fs.promises.stat(fullPath);
+        
+        return {
+          name: item.name,
+          path: fullPath,
+          isDirectory: item.isDirectory(),
+          isFile: item.isFile(),
+          size: stat.size,
+          modified: stat.mtime,
+          extension: path.extname(item.name).toLowerCase()
+        };
       } catch (err) {
-        continue; // Skip inaccessible files
+        // アクセスできないファイルはnullを返す
+        return null;
       }
-      
-      result.push({
-        name: item.name,
-        path: fullPath,
-        isDirectory: item.isDirectory(),
-        isFile: item.isFile(),
-        size: stat.size,
-        modified: stat.mtime,
-        extension: path.extname(item.name).toLowerCase()
-      });
-    }
+    });
+    
+    // 全てのPromiseを並列実行
+    const fileInfoResults = await Promise.all(fileInfoPromises);
+    
+    // nullを除外してresultに追加
+    const result = fileInfoResults.filter(item => item !== null);
     
     // Sort directories first, then files by name with proper Japanese locale
     result.sort((a, b) => {

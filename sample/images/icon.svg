@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="128" height="128" fill="#007acc" rx="12"/>
+  
+  <!-- Folder icon -->
+  <g transform="translate(24, 24)">
+    <!-- Folder body -->
+    <path d="M8 12 L72 12 L72 64 L8 64 Z" fill="#ffffff" stroke="none"/>
+    <!-- Folder tab -->
+    <path d="M8 12 L24 12 L28 8 L40 8 L44 12 L72 12 L72 20 L8 20 Z" fill="#e6f3ff"/>
+    <!-- Files inside -->
+    <rect x="16" y="28" width="48" height="4" fill="#007acc" opacity="0.6"/>
+    <rect x="16" y="36" width="32" height="4" fill="#007acc" opacity="0.6"/>
+    <rect x="16" y="44" width="40" height="4" fill="#007acc" opacity="0.6"/>
+    <rect x="16" y="52" width="24" height="4" fill="#007acc" opacity="0.6"/>
+  </g>
+  
+  <!-- Mireru text -->
+  <text x="64" y="100" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="14" font-weight="bold">Mireru</text>
+</svg>

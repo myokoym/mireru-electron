@@ -7,33 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-06-29
+
 ### Added
-- テストパフォーマンス最適化（実行時間を70秒から20秒に65%短縮）
-- メタ情報サイドバー（ファイル詳細情報の表示/非表示切り替え）
-- ファイルリストの幅調整機能（ドラッグでリサイズ）
-- テキストサイズ拡大縮小機能（Ctrl+Plus/Minus）
-- 文字数・行数・バイト数カウント表示
-- ファイルパスコピー機能（Ctrl+Shift+C）
-- ナビゲーション幅を可変に（ドラッグでリサイズ）
-- ホームボタンを起動時ディレクトリに変更（引数対応）
-- ナビゲーションボタンSVGアイコン化（文字化け解決）
-- ステータスバーの動的カウント更新（検索・ナビゲーション対応）
-- ファイルリスト自動スクロール（選択項目の可視化）
-- コマンドライン引数サポート（起動時ディレクトリ指定）
-- ファイル検索機能（検索フォーカス時キーバインド無効化対応）
-- キーバインド整理（Ruby準拠）
-- ウィンドウリサイズ機能
-- シンタックスハイライト機能
-- 内容ベースファイル判定
-- 言語固有SVGアイコン実装
+- **パフォーマンス最適化**
+  - ディレクトリ読み込み高速化（並列I/O処理、Promise.all使用）
+  - 大容量テキストファイル対応（1MB以上は100KB部分読み込み）
+  - 遅延シンタックスハイライト（50KB以上のファイルで500ms遅延）
+  - ディレクトリキャッシュ機能（最大10エントリ、LRU方式）
+  - 大容量ディレクトリ対応（500+ファイル時の遅延レンダリング）
+  - テスト実行時間最適化（70秒→20秒、65%短縮）
+- **デモ環境**
+  - サンプルファイル構成（text/code/data/images/videos/binary/large/mixed）
+  - パフォーマンステスト用大容量ファイル（500KB JS、465KB テキスト）
+  - 各ファイルタイプのデモサンプル作成
+- **開発環境改善**
+  - Jest設定最適化（canvas mock、環境分離）
+  - テンプレートファイル整理（LICENSE、CHANGELOG、README更新）
 
 ### Changed
-- SPEC.mdをCLAUDE.mdにリネーム（Claude Code統合対応）
-- タスク管理の重複を排除（TODO.mdへの参照に統一）
-- 開発ワークフローの改善（テスト → 再起動の順序）
+- メインプロセス：同期fs.statSync → 非同期fs.promises.stat
+- レンダラー：ディレクトリ変更時の完全状態リセット
+- パッケージバージョン：0.1.0 → 0.2.0
+- 著作権表記：2025 Mireru Project
 
 ### Fixed
-- TODO.mdの機能反映を正確に更新
+- 大容量ファイル選択時のUI凍結問題
+- ディレクトリナビゲーション（Backspace）の応答性向上
+- テキストプレビューの読み込み状態管理
+- Escapeキーによる非同期処理キャンセル機能
 
 ## [0.1.0] - 2024-XX-XX
 
@@ -47,5 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 3パネル構成（ファイルリスト・プレビュー・メタ情報）
 - Electron + React + TypeScript構成
 
-[Unreleased]: https://github.com/myokoym/mireru-electron/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/myokoym/mireru-electron/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/myokoym/mireru-electron/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/myokoym/mireru-electron/releases/tag/v0.1.0

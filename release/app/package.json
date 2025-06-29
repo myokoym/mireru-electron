@@ -1,12 +1,11 @@
 {
   "name": "mireru-electron",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Keyboard-friendly file explorer with vim-like navigation",
   "license": "MIT",
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://github.com/electron-react-boilerplate"
+    "name": "Mireru Project",
+    "url": "https://github.com/myokoym/mireru-electron"
   },
   "main": "./dist/main/main.js",
   "scripts": {

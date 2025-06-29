@@ -1,0 +1,14 @@
+Hello, Mireru!
+
+This is a simple text file to demonstrate Mireru's text viewing capabilities.
+
+Features demonstrated:
+- UTF-8 text encoding
+- Multiple lines
+- Special characters: © ® ™ € ¥
+- Japanese text: こんにちは、ミレル！
+- Emojis: 🎉 🚀 📁 💻
+
+The quick brown fox jumps over the lazy dog.
+1234567890
+!@#$%^&*()_+-=[]{}|;':",./<>?

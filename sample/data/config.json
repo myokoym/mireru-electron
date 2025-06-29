@@ -1,0 +1,70 @@
+{
+  "application": {
+    "name": "Mireru",
+    "version": "0.2.0",
+    "description": "Keyboard-friendly file explorer with vim-like navigation"
+  },
+  "settings": {
+    "theme": "light",
+    "defaultView": "list",
+    "showHiddenFiles": false,
+    "syntaxHighlighting": true,
+    "autoPreview": true,
+    "fontSize": 12,
+    "tabSize": 4
+  },
+  "keybindings": {
+    "navigation": {
+      "nextFile": ["n", "ArrowDown"],
+      "previousFile": ["p", "ArrowUp"],
+      "lastItem": "G",
+      "firstItem": "Ctrl+g",
+      "enterDirectory": ["Enter", "e"],
+      "parentDirectory": "Backspace",
+      "homeDirectory": "Home"
+    },
+    "preview": {
+      "togglePreview": "Space",
+      "zoomIn": ["+", "="],
+      "zoomOut": "-",
+      "fitWindow": "f",
+      "originalSize": "o",
+      "reload": "r"
+    },
+    "search": {
+      "focusSearch": "/",
+      "clearSearch": "Shift+Escape",
+      "exitSearch": "Escape"
+    },
+    "ui": {
+      "toggleMetadata": ["i", "F1"],
+      "copyPath": "Ctrl+Shift+C",
+      "increaseFontSize": ["Ctrl++", "Ctrl+="],
+      "decreaseFontSize": "Ctrl+-",
+      "resetFontSize": "Ctrl+0"
+    }
+  },
+  "fileTypes": {
+    "text": [".txt", ".md", ".log"],
+    "code": [".js", ".ts", ".py", ".rb", ".java", ".c", ".cpp", ".h", ".sh"],
+    "data": [".json", ".yaml", ".yml", ".xml"],
+    "image": [".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp"],
+    "video": [".mp4", ".avi", ".mov", ".webm", ".mkv"],
+    "pdf": [".pdf"]
+  },
+  "performance": {
+    "directoryCache": {
+      "enabled": true,
+      "maxEntries": 10
+    },
+    "textFileOptimization": {
+      "maxFullLoadSize": 1048576,
+      "previewSize": 102400,
+      "maxPreviewLines": 1000
+    },
+    "syntaxHighlight": {
+      "delayForLargeFiles": 500,
+      "largeFileThreshold": 51200
+    }
+  }
+}

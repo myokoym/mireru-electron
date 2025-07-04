@@ -182,35 +182,37 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({
       </div>
 
       {/* PDF ドキュメント表示エリア - react-pdf使用 */}
-      <div className="pdf-document-container" style={{ height: 'calc(100vh - 120px)', overflow: 'auto' }}>
+      <div className="pdf-document-container" style={{ 
+        height: 'auto', // 高さを自動調整
+        overflow: 'visible', // スクロールは親要素に委ねる
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '10px'
+      }}>
         {pdfData ? (
-          <>
-            <div style={{ fontSize: '12px', color: '#666', padding: '5px' }}>
-              📊 PDF Data: {pdfData.substring(0, 50)}... (length: {pdfData.length})
-            </div>
-            <Document
-              file={pdfData}
-              onLoadSuccess={onDocumentLoadSuccess}
-              onLoadError={onDocumentLoadError}
-              loading={<div>🔄 Loading PDF document... ({fileName})</div>}
-              error={<div>❌ Failed to load PDF document.</div>}
-              onLoadStart={() => console.log('📄 PDF load started for:', fileName)}
-              onLoadProgress={({ loaded, total }) => console.log('📊 PDF load progress:', Math.round((loaded / total) * 100) + '%')}
-              onSourceError={(error) => console.error('❌ PDF source error:', error)}
-              onSourceSuccess={() => console.log('✅ PDF source loaded successfully')}
-            >
-              {pdfInfo.numPages > 0 && (
-                <Page
-                  pageNumber={pdfInfo.currentPage}
-                  scale={scale}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  onLoadSuccess={() => console.log('✅ Page rendered:', pdfInfo.currentPage)}
-                  onLoadError={(error) => console.error('❌ Page render error:', error)}
-                />
-              )}
-            </Document>
-          </>
+          <Document
+            file={pdfData}
+            onLoadSuccess={onDocumentLoadSuccess}
+            onLoadError={onDocumentLoadError}
+            loading={<div>🔄 Loading PDF document... ({fileName})</div>}
+            error={<div>❌ Failed to load PDF document.</div>}
+            onLoadStart={() => console.log('📄 PDF load started for:', fileName)}
+            onLoadProgress={({ loaded, total }) => console.log('📊 PDF load progress:', Math.round((loaded / total) * 100) + '%')}
+            onSourceError={(error) => console.error('❌ PDF source error:', error)}
+            onSourceSuccess={() => console.log('✅ PDF source loaded successfully')}
+          >
+            {pdfInfo.numPages > 0 && (
+              <Page
+                pageNumber={pdfInfo.currentPage}
+                scale={scale}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+                onLoadSuccess={() => console.log('✅ Page rendered:', pdfInfo.currentPage)}
+                onLoadError={(error) => console.error('❌ Page render error:', error)}
+              />
+            )}
+          </Document>
         ) : (
           <div style={{ padding: '20px', textAlign: 'center' }}>
             🔄 Loading PDF data from file system...

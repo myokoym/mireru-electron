@@ -22,6 +22,7 @@ import yaml from 'react-syntax-highlighter/dist/esm/languages/hljs/yaml';
 import markdown from 'react-syntax-highlighter/dist/esm/languages/hljs/markdown';
 import sql from 'react-syntax-highlighter/dist/esm/languages/hljs/sql';
 import './App.css';
+import PDFPreview from './components/PDFPreview';
 
 // 言語を登録
 SyntaxHighlighter.registerLanguage('javascript', javascript);
@@ -971,6 +972,13 @@ function ImageExplorer() {
       targetElement = hexElement;
     }
     
+    // PDFプレビューの場合 - PDF Documentコンテナ内を直接スクロール
+    const pdfElement = scrollContainer.querySelector('.pdf-document-container') as HTMLElement;
+    if (!targetElement && pdfElement) {
+      // PDFの場合は親のscrollContainerをスクロールする
+      targetElement = scrollContainer;
+    }
+    
     // デフォルトはpreview-content
     if (!targetElement) {
       targetElement = scrollContainer;
@@ -1217,10 +1225,12 @@ function ImageExplorer() {
       );
     } else if (PDF_EXTENSIONS.includes(ext)) {
       return (
-        <div className="preview-pdf">
-          <p>PDF Preview: {file.name}</p>
-          <p>Use external application to view full PDF</p>
-        </div>
+        <PDFPreview
+          filePath={file.path}
+          fileName={file.name}
+          scale={currentScale}
+          onScaleChange={setCurrentScale}
+        />
       );
     } else {
       // Hex dump for binary files

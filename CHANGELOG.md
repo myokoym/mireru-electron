@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-07-05
+
+### Added
+- **PDF プレビュー機能**
+  - react-pdf による完全なPDFビューア実装
+  - Base64データ読み込みとWorker設定の最適化
+  - ズーム機能（+/-、f、o）とページナビゲーション（←→）
+  - vim風キーボードスクロール（hjkl + HJKL）対応
+- **デモ環境拡張**
+  - PDF サンプルファイルとテスト環境
+  - 自動テストスクリプト（test-pdf-preview.sh）
+  - PDF インストール手順ドキュメント（PDF_INSTALL.md）
+
+### Changed
+- Worker設定: CDN → import.meta.url ベース（現代的アプローチ）
+- PDF読み込み: 直接ファイルパス → Base64データ変換方式
+- PDF表示: プレースホルダー → 完全なビューア機能
+
+### Fixed
+- PDF プレビューの二重スクロールバー問題解消
+- キーボードナビゲーションの PDF 対応
+- react-pdf Worker 読み込みエラーの解決
+- Electron環境でのPDF.js設定問題
+
 ## [0.2.0] - 2025-06-29
 
 ### Added

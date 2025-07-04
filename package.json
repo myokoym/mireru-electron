@@ -44,7 +44,9 @@
     "test": "jest",
     "test:unit": "jest src/__tests__/argument-parser.test.ts",
     "test:integration": "jest src/__tests__/App.test.tsx",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "version:update": "./scripts/update-version.sh",
+    "version:check": "echo 'Main: '$(node -p 'require(\"./package.json\").version') && echo 'Release: '$(node -p 'require(\"./release/app/package.json\").version')"
   },
   "browserslist": [
     "extends browserslist-config-erb"

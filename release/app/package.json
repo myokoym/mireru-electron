@@ -1,6 +1,6 @@
 {
   "name": "mireru-electron",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Keyboard-friendly file explorer with vim-like navigation",
   "license": "MIT",
   "author": {

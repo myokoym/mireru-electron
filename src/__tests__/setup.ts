@@ -57,3 +57,14 @@ jest.mock('react-syntax-highlighter/dist/esm/languages/hljs/sql', () => mockLang
 
 // Canvas のモック（JSDOM で canvas が利用できない問題を解決）
 jest.mock('canvas', () => require('./mocks/canvas.js'));
+
+// PDFPreview コンポーネントのモック
+jest.mock('../renderer/components/PDFPreview', () => {
+  const React = require('react');
+  return Object.assign(
+    ({ fileName }: { fileName: string }) => {
+      return React.createElement('div', { 'data-testid': 'pdf-preview' }, `PDF Preview: ${fileName}`);
+    },
+    { displayName: 'PDFPreview' }
+  );
+});

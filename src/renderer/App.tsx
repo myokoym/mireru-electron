@@ -427,7 +427,9 @@ function ImageExplorer() {
         if (newCache.size >= 10) {
           // 最も古いエントリを削除（Mapの最初のキー）
           const firstKey = newCache.keys().next().value;
-          newCache.delete(firstKey);
+          if (firstKey !== undefined) {
+            newCache.delete(firstKey);
+          }
         }
         
         newCache.set(path, items);

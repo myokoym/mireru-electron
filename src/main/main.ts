@@ -213,8 +213,17 @@ ipcMain.handle('read-file', async (event, filePath: string) => {
         size: stat.size 
       };
     } else if (['.pdf'].includes(ext)) {
-      // PDF file
-      return { type: 'pdf', content: 'PDF file detected', size: stat.size };
+      // PDF file - return base64 for react-pdf
+      console.log('📄 Main process: Reading PDF file:', filePath);
+      const buffer = fs.readFileSync(filePath);
+      const base64 = buffer.toString('base64');
+      console.log('📄 Main process: PDF file read successfully, size:', buffer.length);
+      return { 
+        type: 'pdf', 
+        content: `data:application/pdf;base64,${base64}`, 
+        size: stat.size,
+        filePath: filePath // レンダラーでのデバッグ用
+      };
     } else {
       // Unknown extension - detect based on content
       const buffer = fs.readFileSync(filePath, { encoding: null, flag: 'r' });

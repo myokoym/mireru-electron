@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Mireru Web - Browser-based file explorer with vim-like navigation">
+  <title>Mireru Web - File Explorer</title>
+  
+  <!-- PWA メタタグ -->
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Mireru Web">
+  
+  <!-- アイコン -->
+  <link rel="icon" type="image/svg+xml" href="/assets/icon.svg">
+  <link rel="icon" type="image/png" href="/assets/icon.png">
+  <link rel="apple-touch-icon" href="/assets/icons/512x512.png">
+  
+  <!-- PWA マニフェスト -->
+  <link rel="manifest" href="/manifest.json">
+  
+  <style>
+    /* 初期ローディング画面 */
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .loading-spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #007acc;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: #333;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    
+    .loading-subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+    
+    /* 非対応ブラウザ用スタイル */
+    .unsupported-browser {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 40px;
+      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+    }
+    
+    .unsupported-browser h1 {
+      color: #d73027;
+      margin-bottom: 20px;
+    }
+    
+    .unsupported-browser ul {
+      text-align: left;
+      max-width: 300px;
+      margin: 20px auto;
+    }
+    
+    .browser-links {
+      margin-top: 30px;
+    }
+    
+    .browser-links a {
+      display: inline-block;
+      margin: 0 10px;
+      padding: 10px 20px;
+      background: #007acc;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.2s;
+    }
+    
+    .browser-links a:hover {
+      background: #005999;
+    }
+  </style>
+</head>
+<body>
+  <!-- 初期ローディング画面 -->
+  <div id="loading" class="loading-screen">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Loading Mireru Web...</div>
+    <div class="loading-subtitle">Browser-based file explorer</div>
+  </div>
+  
+  <!-- アプリケーションルート -->
+  <div id="root"></div>
+  
+  <script>
+    // ローディング画面を非表示にする関数
+    function hideLoading() {
+      const loading = document.getElementById('loading');
+      if (loading) {
+        loading.style.display = 'none';
+      }
+    }
+    
+    // File System Access API サポートチェック
+    function checkBrowserSupport() {
+      if (!('showDirectoryPicker' in window)) {
+        // 非対応ブラウザの場合
+        const root = document.getElementById('root');
+        if (root) {
+          root.innerHTML = `
+            <div class="unsupported-browser">
+              <h1>🚫 Browser Not Supported</h1>
+              <p>
+                Mireru Web requires the <strong>File System Access API</strong> which is currently only supported in:
+              </p>
+              <ul>
+                <li>Google Chrome 86+</li>
+                <li>Microsoft Edge 86+</li>
+                <li>Brave Browser (experimental)</li>
+              </ul>
+              <p>
+                Please use one of these browsers and make sure you're using HTTPS (or localhost for development).
+              </p>
+              <div class="browser-links">
+                <a href="https://www.google.com/chrome/" target="_blank" rel="noopener noreferrer">
+                  Download Chrome
+                </a>
+                <a href="https://www.microsoft.com/edge" target="_blank" rel="noopener noreferrer">
+                  Download Edge
+                </a>
+              </div>
+            </div>
+          `;
+        }
+        hideLoading();
+        return false;
+      }
+      return true;
+    }
+    
+    // アプリケーション読み込み
+    if (checkBrowserSupport()) {
+      // React アプリの読み込み完了後にローディングを非表示
+      window.addEventListener('load', () => {
+        setTimeout(hideLoading, 500); // 少し遅延して自然な感じに
+      });
+    }
+    
+    // Service Worker 登録 (プロダクション環境)
+    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('SW registered: ', registration);
+          })
+          .catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

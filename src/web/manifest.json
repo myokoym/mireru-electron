@@ -1,0 +1,96 @@
+{
+  "name": "Mireru Web - File Explorer",
+  "short_name": "Mireru Web",
+  "description": "Browser-based file explorer with vim-like navigation and file preview capabilities",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/assets/icons/16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/48x48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/64x64.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/256x256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Select Directory",
+      "short_name": "Select Dir",
+      "description": "Open directory picker to browse files",
+      "url": "/?action=select",
+      "icons": [
+        {
+          "src": "/assets/icons/96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "text/*": [".txt", ".md", ".js", ".ts", ".json", ".html", ".css"],
+        "image/*": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
+        "video/*": [".mp4", ".webm", ".mov"],
+        "application/pdf": [".pdf"]
+      }
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Mireru Web desktop interface"
+    },
+    {
+      "src": "/assets/screenshot-mobile.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "label": "Mireru Web mobile interface"
+    }
+  ]
+}

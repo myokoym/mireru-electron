@@ -1,0 +1,264 @@
+/* Web版 Mireru 用追加スタイル */
+
+/* ディレクトリピッカー関連 */
+.directory-picker-btn {
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.directory-picker-btn:hover {
+  background: #005999;
+}
+
+.directory-picker-btn:active {
+  background: #004477;
+}
+
+.select-directory-btn {
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: inherit;
+  transition: background 0.2s;
+  margin-top: 20px;
+}
+
+.select-directory-btn:hover {
+  background: #005999;
+}
+
+/* ディレクトリ未選択状態 */
+.no-directory {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.no-directory p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+/* コントロールボタン */
+.control-btn {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 6px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 8px;
+  transition: all 0.2s;
+}
+
+.control-btn:hover {
+  background: #f0f0f0;
+  border-color: #bbb;
+}
+
+.control-btn.active {
+  background: #007acc;
+  color: white;
+  border-color: #007acc;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+  
+  .file-list {
+    max-height: 40vh;
+    min-height: 200px;
+  }
+  
+  .preview-panel {
+    min-height: 300px;
+  }
+  
+  .meta-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    z-index: 1000;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .path-section {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 8px 12px;
+  }
+  
+  .directory-picker-btn,
+  .control-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .file-item {
+    padding: 8px 12px;
+  }
+  
+  .file-name {
+    font-size: 14px;
+  }
+  
+  .preview-panel {
+    padding: 15px;
+  }
+}
+
+/* タッチデバイス対応 */
+@media (hover: none) and (pointer: coarse) {
+  .file-item {
+    padding: 12px;
+    min-height: 44px; /* タッチターゲットサイズ */
+  }
+  
+  .control-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .search-input {
+    font-size: 16px; /* iOS での自動ズーム防止 */
+  }
+}
+
+/* ハイコントラストモード対応 */
+@media (prefers-contrast: high) {
+  .file-item.selected {
+    background: #000000;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+  }
+  
+  .control-btn {
+    border-width: 2px;
+  }
+}
+
+/* ダークモード対応の準備 */
+@media (prefers-color-scheme: dark) {
+  /* 将来的にダークモード対応時に使用 */
+}
+
+/* 印刷時のスタイル */
+@media print {
+  .header,
+  .file-list,
+  .meta-sidebar,
+  .status-bar {
+    display: none;
+  }
+  
+  .preview-panel {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* フォーカス管理 */
+.file-item:focus,
+.control-btn:focus,
+.search-input:focus {
+  outline: 2px solid #007acc;
+  outline-offset: 2px;
+}
+
+/* アニメーション最適化 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* スクロールバーのカスタマイズ (Webkit) */
+.file-items::-webkit-scrollbar,
+.preview-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.file-items::-webkit-scrollbar-track,
+.preview-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.file-items::-webkit-scrollbar-thumb,
+.preview-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.file-items::-webkit-scrollbar-thumb:hover,
+.preview-content::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Web版特有のレイアウト調整 */
+.app {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* PWA インストールプロンプト */
+.install-prompt {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #007acc;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+  font-size: 14px;
+  z-index: 1000;
+  transition: transform 0.2s;
+}
+
+.install-prompt:hover {
+  transform: translateY(-2px);
+}
+
+.install-prompt .close {
+  margin-left: 10px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.install-prompt .close:hover {
+  opacity: 1;
+}

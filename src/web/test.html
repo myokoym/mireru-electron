@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mireru Web - File System Access API Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .test-section {
+      background: #f5f5f5;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    
+    button {
+      background: #007acc;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    
+    button:hover {
+      background: #005999;
+    }
+    
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .result {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      white-space: pre-wrap;
+      font-family: Monaco, Consolas, monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .error {
+      background: #fee;
+      border-color: #fcc;
+    }
+    
+    .success {
+      background: #efe;
+      border-color: #cfc;
+    }
+    
+    .info {
+      background: #e6f3ff;
+      border-color: #b3d9ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔬 Mireru Web - File System Access API Test</h1>
+  
+  <div class="test-section">
+    <h2>Browser Compatibility Check</h2>
+    <div id="compatibility-result" class="result info">Checking...</div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Directory Selection Test</h2>
+    <button id="pick-directory" disabled>📂 Pick Directory</button>
+    <div id="directory-result" class="result">No directory selected</div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Directory Contents Test</h2>
+    <button id="list-contents" disabled>📋 List Contents</button>
+    <div id="contents-result" class="result">Select a directory first</div>
+  </div>
+  
+  <div class="test-section">
+    <h2>File Reading Test</h2>
+    <p>Select a file from the directory contents list above to test file reading.</p>
+    <div id="file-result" class="result">No file selected</div>
+  </div>
+
+  <script>
+    // グローバル変数
+    let currentDirectoryHandle = null;
+    let currentPath = '';
+    let fileItems = [];
+
+    // DOM要素
+    const compatibilityResult = document.getElementById('compatibility-result');
+    const pickDirectoryBtn = document.getElementById('pick-directory');
+    const directoryResult = document.getElementById('directory-result');
+    const listContentsBtn = document.getElementById('list-contents');
+    const contentsResult = document.getElementById('contents-result');
+    const fileResult = document.getElementById('file-result');
+
+    // ブラウザ互換性チェック
+    function checkCompatibility() {
+      const checks = {
+        'File System Access API': 'showDirectoryPicker' in window,
+        'showOpenFilePicker': 'showOpenFilePicker' in window,
+        'Directory Handle': 'FileSystemDirectoryHandle' in window,
+        'File Handle': 'FileSystemFileHandle' in window,
+        'HTTPS/Localhost': location.protocol === 'https:' || location.hostname === 'localhost'
+      };
+
+      let result = 'Browser Compatibility Check:\n\n';
+      let allSupported = true;
+
+      for (const [feature, supported] of Object.entries(checks)) {
+        result += `${supported ? '✅' : '❌'} ${feature}: ${supported ? 'Supported' : 'Not Supported'}\n`;
+        if (!supported) allSupported = false;
+      }
+
+      result += `\nUser Agent: ${navigator.userAgent}\n`;
+      result += `Protocol: ${location.protocol}\n`;
+      result += `Hostname: ${location.hostname}\n`;
+
+      compatibilityResult.textContent = result;
+      compatibilityResult.className = `result ${allSupported ? 'success' : 'error'}`;
+
+      if (allSupported) {
+        pickDirectoryBtn.disabled = false;
+      } else {
+        result += '\n⚠️  Use Chrome/Edge with HTTPS or localhost for full functionality.';
+        compatibilityResult.textContent = result;
+      }
+    }
+
+    // ディレクトリピッカー
+    async function pickDirectory() {
+      try {
+        pickDirectoryBtn.disabled = true;
+        directoryResult.textContent = 'Opening directory picker...';
+        
+        currentDirectoryHandle = await window.showDirectoryPicker();
+        currentPath = currentDirectoryHandle.name;
+        
+        directoryResult.textContent = `✅ Directory selected: ${currentPath}`;
+        directoryResult.className = 'result success';
+        
+        listContentsBtn.disabled = false;
+        
+      } catch (error) {
+        const message = error.name === 'AbortError' 
+          ? '❌ Directory selection cancelled by user'
+          : `❌ Error: ${error.message}`;
+        
+        directoryResult.textContent = message;
+        directoryResult.className = 'result error';
+      } finally {
+        pickDirectoryBtn.disabled = false;
+      }
+    }
+
+    // ディレクトリ内容リスト
+    async function listContents() {
+      if (!currentDirectoryHandle) {
+        contentsResult.textContent = '❌ No directory selected';
+        contentsResult.className = 'result error';
+        return;
+      }
+
+      try {
+        listContentsBtn.disabled = true;
+        contentsResult.textContent = 'Reading directory contents...';
+        
+        const items = [];
+        for await (const [name, handle] of currentDirectoryHandle.entries()) {
+          const item = {
+            name,
+            type: handle.kind,
+            handle
+          };
+          
+          if (handle.kind === 'file') {
+            const file = await handle.getFile();
+            item.size = file.size;
+            item.modified = new Date(file.lastModified);
+            item.extension = name.includes('.') ? '.' + name.split('.').pop().toLowerCase() : '';
+          }
+          
+          items.push(item);
+        }
+
+        // ソート: ディレクトリ優先、その後名前順
+        items.sort((a, b) => {
+          if (a.type === 'directory' && b.type === 'file') return -1;
+          if (a.type === 'file' && b.type === 'directory') return 1;
+          return a.name.localeCompare(b.name);
+        });
+
+        fileItems = items;
+
+        let result = `📁 Directory: ${currentPath}\n`;
+        result += `📊 Total items: ${items.length}\n\n`;
+
+        items.forEach((item, index) => {
+          const icon = item.type === 'directory' ? '📁' : '📄';
+          const size = item.size ? ` (${formatFileSize(item.size)})` : '';
+          const modified = item.modified ? ` - ${item.modified.toLocaleDateString()}` : '';
+          
+          result += `${icon} ${item.name}${size}${modified}\n`;
+        });
+
+        result += '\n💡 Click on any file name below to test file reading:';
+
+        contentsResult.innerHTML = result + '<div style="margin-top: 10px;">' + 
+          items.filter(item => item.type === 'file')
+            .map((item, index) => `<button onclick="readFile(${items.indexOf(item)})" style="margin: 2px; padding: 5px 10px; font-size: 12px;">📄 ${item.name}</button>`)
+            .join('') + '</div>';
+        
+        contentsResult.className = 'result success';
+        
+      } catch (error) {
+        contentsResult.textContent = `❌ Error reading directory: ${error.message}`;
+        contentsResult.className = 'result error';
+      } finally {
+        listContentsBtn.disabled = false;
+      }
+    }
+
+    // ファイル読み込み
+    async function readFile(itemIndex) {
+      const item = fileItems[itemIndex];
+      if (!item || item.type !== 'file') {
+        fileResult.textContent = '❌ Invalid file selection';
+        fileResult.className = 'result error';
+        return;
+      }
+
+      try {
+        fileResult.textContent = `Reading file: ${item.name}...`;
+        fileResult.className = 'result info';
+        
+        const file = await item.handle.getFile();
+        
+        let result = `📄 File: ${item.name}\n`;
+        result += `📊 Size: ${formatFileSize(file.size)}\n`;
+        result += `🏷️  Type: ${file.type || 'Unknown'}\n`;
+        result += `📅 Modified: ${new Date(file.lastModified).toLocaleString()}\n\n`;
+
+        // ファイル内容のプレビュー
+        const maxPreviewSize = 1024; // 1KB preview
+        
+        if (file.size === 0) {
+          result += '📝 Content: (Empty file)';
+        } else if (file.type.startsWith('text/') || item.extension.match(/\.(txt|md|js|ts|json|html|css|xml|log|py|rb|php|java|c|cpp|h|sh|yaml|yml)$/)) {
+          const text = await file.text();
+          const preview = text.length > maxPreviewSize ? text.substring(0, maxPreviewSize) + '...\n\n[Truncated]' : text;
+          result += `📝 Content Preview:\n${'-'.repeat(40)}\n${preview}`;
+        } else if (file.type.startsWith('image/')) {
+          const url = URL.createObjectURL(file);
+          result += `🖼️  Image Preview:\n${'-'.repeat(40)}\n`;
+          fileResult.innerHTML = result + `<img src="${url}" style="max-width: 100%; max-height: 200px; margin-top: 10px;" onload="URL.revokeObjectURL('${url}')">`;
+          fileResult.className = 'result success';
+          return;
+        } else {
+          // バイナリファイルのhexdump
+          const arrayBuffer = await file.slice(0, Math.min(512, file.size)).arrayBuffer();
+          const bytes = new Uint8Array(arrayBuffer);
+          let hexContent = '';
+          
+          for (let i = 0; i < bytes.length; i += 16) {
+            const offset = i.toString(16).padStart(8, '0');
+            let hexBytes = '';
+            let asciiChars = '';
+            
+            for (let j = 0; j < 16; j++) {
+              if (i + j < bytes.length) {
+                const byte = bytes[i + j];
+                hexBytes += byte.toString(16).padStart(2, '0') + ' ';
+                asciiChars += (byte >= 32 && byte <= 126) ? String.fromCharCode(byte) : '.';
+              } else {
+                hexBytes += '   ';
+                asciiChars += ' ';
+              }
+            }
+            
+            hexContent += `${offset}  ${hexBytes} |${asciiChars}|\n`;
+          }
+          
+          result += `🔢 Binary Content (Hex dump):\n${'-'.repeat(40)}\n${hexContent}`;
+          if (file.size > 512) {
+            result += '\n[Showing first 512 bytes only]';
+          }
+        }
+
+        fileResult.textContent = result;
+        fileResult.className = 'result success';
+        
+      } catch (error) {
+        fileResult.textContent = `❌ Error reading file: ${error.message}`;
+        fileResult.className = 'result error';
+      }
+    }
+
+    // ファイルサイズフォーマット
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // グローバル関数として公開
+    window.readFile = readFile;
+
+    // イベントリスナー
+    pickDirectoryBtn.addEventListener('click', pickDirectory);
+    listContentsBtn.addEventListener('click', listContents);
+
+    // 初期化
+    checkCompatibility();
+  </script>
+</body>
+</html>

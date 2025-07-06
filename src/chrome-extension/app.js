@@ -247,17 +247,21 @@ class MireruApp {
 
         <div class="main-content">
           <!-- ファイルリスト -->
-          <div class="file-list">
-            <div class="search-container">
-              <input id="search-input" type="text" placeholder="Search files... (Press / to focus)" class="search-input">
+          <div class="file-list-container">
+            <div class="search-bar">
+              <div class="search-input-container">
+                <input id="search-input" type="text" placeholder="Search files... (Press / to focus)" class="search-input">
+              </div>
             </div>
             
-            <div id="no-directory" class="no-directory">
-              <p>📂 Select a directory to start browsing files</p>
-              <button id="select-directory-btn" class="select-directory-btn">Choose Directory</button>
+            <div class="file-list">
+              <div id="no-directory" class="no-directory">
+                <p>📂 Select a directory to start browsing files</p>
+                <button id="select-directory-btn" class="select-directory-btn">Choose Directory</button>
+              </div>
+              
+              <div id="file-items" class="file-items" style="display: none;"></div>
             </div>
-            
-            <div id="file-items" class="file-items" style="display: none;"></div>
           </div>
 
           <!-- プレビューパネル -->

@@ -396,6 +396,46 @@ npm run package
 - **シンタックスハイライト**: Lightコンポーネント使用
 - **言語パック**: 必要な言語のみ個別インポート
 
+## Chrome拡張機能版
+
+### 概要
+ビデオチャット中のファイル共有用途向けに、Mireruのブラウザ版をChrome拡張機能として実装。
+
+### 実装状況
+- **実装済み**: Phase 1 - 基本プロトタイプ（2025/07/06）
+  - Manifest V3準拠
+  - File System Access APIによるローカルファイルアクセス
+  - CSP制約を考慮したバニラJavaScript実装
+  - vim風キーバインドとメタ情報サイドバーの完全移植
+
+### インストール方法
+1. Chrome で `chrome://extensions/` を開く
+2. 「デベロッパーモード」をオンにする
+3. 「パッケージ化されていない拡張機能を読み込む」をクリック
+4. `src/chrome-extension` フォルダを選択
+
+### 使用方法
+- 拡張機能アイコンをクリック → 新タブでMireruが起動
+- 「Choose Directory」ボタンでフォルダを選択
+- 以降はElectron版と同じ操作性
+
+### ディレクトリ構成
+```
+src/chrome-extension/
+├── manifest.json        # Manifest V3設定
+├── background.js        # Service Worker
+├── explorer.html        # メインHTML
+├── init.js             # 初期化スクリプト（CSP対応）
+├── app.js              # メインアプリケーション
+├── filesystem-api.js   # File System Access APIラッパー
+├── styles.css          # スタイルシート
+└── icons/              # 拡張機能アイコン
+```
+
+### 今後の改善計画
+- **Phase 2**: 全機能移植とフォールバック実装
+- **Phase 3**: PWA化とデプロイ環境構築
+
 ## 今後の改善案
 
 **📋 最新の改善計画は [TODO.md](./TODO.md) を参照してください。**
@@ -455,4 +495,4 @@ Mireruの基盤アーキテクチャ（Electron + React + TypeScript）を活用
 
 ---
 
-*最終更新: 2025/06/03*
+*最終更新: 2025/07/06*

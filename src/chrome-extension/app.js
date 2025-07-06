@@ -509,7 +509,15 @@ class MireruApp {
   toggleMetaSidebar() {
     this.isMetaSidebarVisible = !this.isMetaSidebarVisible;
     this.elements.metaSidebar.style.display = this.isMetaSidebarVisible ? 'block' : 'none';
-    this.elements.metaToggleBtn.classList.toggle('active', this.isMetaSidebarVisible);
+    
+    // ボタンのactive状態を更新
+    if (this.elements.metaToggleBtn) {
+      if (this.isMetaSidebarVisible) {
+        this.elements.metaToggleBtn.classList.add('active');
+      } else {
+        this.elements.metaToggleBtn.classList.remove('active');
+      }
+    }
     
     if (this.isMetaSidebarVisible) {
       const filteredFiles = this.files.filter(file =>

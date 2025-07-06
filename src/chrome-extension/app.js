@@ -456,7 +456,7 @@ class MireruApp {
       case 'text':
         previewHTML = `
           ${this.isPreviewPartial ? '<div class="partial-notice">⚠️ Large file - showing first 100KB only</div>' : ''}
-          <pre style="font-size: ${this.textFontSize}px; font-family: Monaco, Consolas, monospace; margin: 0; padding: 16px; background: #f8f8f8; overflow: auto; white-space: pre-wrap;">${this.escapeHtml(content.content)}</pre>
+          <pre class="preview-text" style="font-size: ${this.textFontSize}px;">${this.escapeHtml(content.content)}</pre>
         `;
         break;
       
@@ -492,7 +492,7 @@ class MireruApp {
       case 'hex':
         previewHTML = `
           ${this.isPreviewPartial ? '<div class="partial-notice">⚠️ Large binary file - showing first 20KB only</div>' : ''}
-          <pre style="font-family: Monaco, Consolas, monospace; font-size: 12px; margin: 0; padding: 16px; background: #f8f8f8; overflow: auto;">${this.escapeHtml(content.content)}</pre>
+          <pre class="preview-hex">${this.escapeHtml(content.content)}</pre>
         `;
         break;
     }

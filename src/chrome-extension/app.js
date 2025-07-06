@@ -29,6 +29,28 @@ class MireruApp {
     this.init();
   }
 
+  // SVGアイコン生成関数
+  generateSVGIcon(type, size = 16) {
+    const svgStart = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+    const svgEnd = '</svg>';
+    
+    switch (type) {
+      case 'home':
+        return `${svgStart}
+          <path d="M8 2L2 7v7h3v-4h2v4h3V7l-6-5z" fill="#4a5568" stroke="#2d3748" stroke-width="0.5"/>
+          <rect x="6" y="6" width="4" height="4" fill="#4a5568"/>
+        ${svgEnd}`;
+        
+      case 'up':
+        return `${svgStart}
+          <path d="M8 3l5 5H10v5H6V8H3l5-5z" fill="#4a5568" stroke="#2d3748" stroke-width="0.5"/>
+        ${svgEnd}`;
+        
+      default:
+        return '';
+    }
+  }
+
   async init() {
     try {
       console.log('MireruApp init started');
@@ -121,6 +143,12 @@ class MireruApp {
         <header class="header">
           <div class="header-content">
             <div class="path-section">
+              <button id="home-btn" class="path-btn" title="Go to startup directory (Home)" style="display: none;">
+                <span id="home-icon"></span>
+              </button>
+              <button id="up-btn" class="path-btn" title="Go up (Backspace)" style="display: none;">
+                <span id="up-icon"></span>
+              </button>
               <span class="path" id="current-path">📁 No directory selected</span>
             </div>
             <div class="controls">
@@ -192,6 +220,18 @@ class MireruApp {
     this.elements.fileCount = document.getElementById('file-count');
     this.elements.fileInfo = document.getElementById('file-info');
     this.elements.metaContent = document.getElementById('meta-content');
+    this.elements.homeBtn = document.getElementById('home-btn');
+    this.elements.upBtn = document.getElementById('up-btn');
+    this.elements.homeIcon = document.getElementById('home-icon');
+    this.elements.upIcon = document.getElementById('up-icon');
+
+    // SVGアイコンを設定
+    if (this.elements.homeIcon) {
+      this.elements.homeIcon.innerHTML = this.generateSVGIcon('home', 16);
+    }
+    if (this.elements.upIcon) {
+      this.elements.upIcon.innerHTML = this.generateSVGIcon('up', 16);
+    }
 
     // イベントリスナー
     this.elements.selectDirectoryBtn.addEventListener('click', () => this.handleDirectorySelect());
@@ -199,6 +239,10 @@ class MireruApp {
     this.elements.refreshBtn.addEventListener('click', () => this.handleDirectorySelect());
     this.elements.metaToggleBtn.addEventListener('click', () => this.toggleMetaSidebar());
     this.elements.metaCloseBtn.addEventListener('click', () => this.toggleMetaSidebar());
+    
+    // ナビゲーションボタン
+    this.elements.homeBtn.addEventListener('click', () => this.goHome());
+    this.elements.upBtn.addEventListener('click', () => this.goUp());
 
     this.elements.searchInput.addEventListener('input', (e) => {
       this.searchQuery = e.target.value;
@@ -259,6 +303,8 @@ class MireruApp {
       this.elements.noDirectory.style.display = 'none';
       this.elements.fileItems.style.display = 'block';
       this.elements.directoryPickerBtn.style.display = 'none';
+      this.elements.homeBtn.style.display = 'inline-block';
+      this.elements.upBtn.style.display = 'inline-block';
       
       await this.loadDirectory(dirPath);
       this.updateStatus('Ready');
@@ -266,6 +312,23 @@ class MireruApp {
       if (error instanceof Error && error.message.includes('cancelled')) {
         this.updateStatus('Directory selection cancelled');
       } else {
+        this.updateStatus(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }
+
+  async goHome() {
+    if (this.initialPath && this.currentPath !== this.initialPath) {
+      await this.loadDirectory(this.initialPath);
+    }
+  }
+
+  async goUp() {
+    if (this.currentPath && this.currentPath !== this.initialPath) {
+      try {
+        const parentPath = await window.webElectronAPI.getParentDirectory(this.currentPath);
+        await this.loadDirectory(parentPath);
+      } catch (error) {
         this.updateStatus(`Error: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
@@ -564,14 +627,11 @@ class MireruApp {
         break;
       case 'Backspace':
         event.preventDefault();
-        if (this.currentPath !== this.initialPath) {
-          const parentPath = await window.webElectronAPI.getParentDirectory(this.currentPath);
-          await this.loadDirectory(parentPath);
-        }
+        await this.goUp();
         break;
       case 'Home':
         event.preventDefault();
-        await this.loadDirectory(this.initialPath);
+        await this.goHome();
         break;
       case '/':
         event.preventDefault();

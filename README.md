@@ -2,6 +2,8 @@
 
 A keyboard-friendly file explorer with VS Code-like UI, built with Electron and React.
 
+English | [日本語](README.ja.md)
+
 ## Concept
 
 - **気軽に使えるexplorer**: Intuitive and efficient file management with vim-style keybindings

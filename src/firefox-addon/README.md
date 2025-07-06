@@ -2,6 +2,8 @@
 
 Keyboard-friendly file explorer with vim-like navigation for Firefox.
 
+English | [日本語](README.ja.md)
+
 ## Features
 
 - 🎯 **Vim-style Navigation**: Use `j/k` for up/down, `Enter` to open files/folders

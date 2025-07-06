@@ -1,15 +1,24 @@
 # CSV Sample Files
 
-このディレクトリには、Mireru Chrome拡張機能でCSVスプレッドシート表示をテストするためのサンプルファイルが含まれています。
+This directory contains sample CSV files for testing Mireru's CSV spreadsheet display functionality.
 
-## ファイル一覧
+English | [日本語](README.ja.md)
 
-- `sample-data.csv` - 従業員データのサンプル（日本語含む）
-- `products.csv` - 商品データのサンプル
+## Files
 
-## CSV機能
+- `sample-data.csv` - Employee data sample (includes Japanese text)
+- `products.csv` - Product data sample
 
-- 📊 スプレッドシート風のテーブル表示
-- 📄 生テキスト表示との切り替え
-- ホバー時のセル内容展開
-- 大きなCSVファイルの部分表示（1000行制限）
+## CSV Features
+
+- 📊 Spreadsheet-style table view
+- 📄 Toggle between table and text view
+- Cell content expansion on hover
+- Large CSV file partial display (1000-row limit)
+
+## Testing
+
+1. Open this directory in Mireru (Chrome Extension or Firefox Add-on)
+2. Click on CSV files to see spreadsheet view
+3. Use view toggle buttons to switch between table/text modes
+4. Test with different CSV formats and sizes

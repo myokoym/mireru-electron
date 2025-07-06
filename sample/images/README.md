@@ -2,6 +2,8 @@
 
 This directory contains sample images for testing Mireru's image preview features.
 
+English | [日本語](README.ja.md)
+
 ## Files
 
 - `icon.svg` - SVG vector graphic (Mireru logo)

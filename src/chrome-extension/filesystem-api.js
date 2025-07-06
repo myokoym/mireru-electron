@@ -125,6 +125,7 @@ const readFile = async (filePath) => {
     const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
     const VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv'];
     const PDF_EXTENSIONS = ['.pdf'];
+    const CSV_EXTENSIONS = ['.csv'];
     const TEXT_EXTENSIONS = ['.txt', '.md', '.js', '.jsx', '.ts', '.tsx', '.json', '.html', '.css', '.xml', '.log', '.py', '.rb', '.php', '.java', '.c', '.cpp', '.h', '.sh', '.yaml', '.yml'];
     
     if (IMAGE_EXTENSIONS.includes(extension)) {
@@ -156,6 +157,26 @@ const readFile = async (filePath) => {
         type: 'pdf',
         content: `data:application/pdf;base64,${base64}`,
         size: file.size
+      };
+    } else if (CSV_EXTENSIONS.includes(extension)) {
+      // CSVファイル - テキストとして読み込み
+      let content;
+      let isPartial = false;
+      
+      if (file.size > 1024 * 1024) {
+        // 1MB以上は部分読み込み
+        const slice = file.slice(0, 100 * 1024);
+        content = await slice.text();
+        isPartial = true;
+      } else {
+        content = await file.text();
+      }
+      
+      return {
+        type: 'csv',
+        content,
+        size: file.size,
+        isPartial
       };
     } else if (TEXT_EXTENSIONS.includes(extension) || file.size < 50 * 1024) {
       // テキストファイル or 小さなファイル

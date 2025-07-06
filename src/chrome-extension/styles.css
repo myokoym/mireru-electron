@@ -629,6 +629,122 @@ kbd {
   color: #333;
 }
 
+/* CSVプレビュー */
+.csv-preview-header {
+  padding: 12px 16px;
+  background: #f6f8fa;
+  border-bottom: 1px solid #e1e4e8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.csv-view-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.csv-view-btn {
+  padding: 6px 12px;
+  border: 1px solid #d1d5da;
+  background: #ffffff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.csv-view-btn:hover {
+  background: #f6f8fa;
+  border-color: #c6cbd1;
+}
+
+.csv-view-btn.active {
+  background: #0366d6;
+  border-color: #0366d6;
+  color: #ffffff;
+}
+
+.csv-table-container {
+  overflow: auto;
+  max-height: calc(100vh - 300px);
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  margin: 16px;
+}
+
+.csv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  background: #ffffff;
+}
+
+.csv-header {
+  background: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #24292e;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.csv-row:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.csv-row:hover {
+  background: #e6f3ff;
+}
+
+.csv-cell {
+  border: 1px solid #e1e4e8;
+  padding: 8px 12px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #24292e;
+}
+
+.csv-cell:hover {
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: none;
+}
+
+.csv-notice {
+  background: #fff3cd;
+  color: #856404;
+  padding: 8px 16px;
+  border-bottom: 1px solid #ffeaa7;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.csv-empty {
+  padding: 40px;
+  text-align: center;
+  color: #586069;
+  font-style: italic;
+}
+
+.csv-error {
+  padding: 16px;
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  margin: 16px;
+}
+
 /* ステータスバー */
 .status-bar {
   display: flex;

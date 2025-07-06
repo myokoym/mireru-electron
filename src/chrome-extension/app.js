@@ -16,6 +16,7 @@ class MireruApp {
     this.isPreviewPartial = false;
     this.isMetaSidebarVisible = false;
     this.directorySelected = false;
+    this.csvViewMode = 'table'; // 'table' or 'text'
 
     // DOM要素
     this.elements = {};
@@ -25,8 +26,90 @@ class MireruApp {
     this.TEXT_EXTENSIONS = ['.txt', '.md', '.js', '.jsx', '.ts', '.tsx', '.json', '.html', '.css', '.xml', '.log', '.py', '.rb', '.php', '.java', '.c', '.cpp', '.h', '.sh', '.yaml', '.yml'];
     this.VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv'];
     this.PDF_EXTENSIONS = ['.pdf'];
+    this.CSV_EXTENSIONS = ['.csv'];
 
     this.init();
+  }
+
+  // Papa Parseライブラリを読み込み
+  async loadPapaParseLibrary() {
+    return new Promise((resolve, reject) => {
+      if (window.Papa) {
+        resolve();
+        return;
+      }
+      
+      const script = document.createElement('script');
+      script.src = 'papa-parse.min.js';
+      script.onload = () => {
+        console.log('Papa Parse library loaded');
+        resolve();
+      };
+      script.onerror = (error) => {
+        console.error('Failed to load Papa Parse library:', error);
+        reject(error);
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  // CSVデータをパースしてHTMLテーブルに変換
+  parseCSVToTable(csvContent) {
+    try {
+      const result = Papa.parse(csvContent, {
+        header: false,
+        skipEmptyLines: true,
+        delimiter: '',  // 自動検出
+        quoteChar: '"',
+        escapeChar: '"'
+      });
+
+      if (result.errors.length > 0) {
+        console.warn('CSV parsing warnings:', result.errors);
+      }
+
+      const data = result.data;
+      if (data.length === 0) {
+        return '<div class="csv-empty">No data found in CSV file.</div>';
+      }
+
+      // 最大1000行に制限（パフォーマンス対策）
+      const maxRows = 1000;
+      const limitedData = data.slice(0, maxRows);
+      const isLimited = data.length > maxRows;
+
+      let tableHTML = '<div class="csv-table-container">';
+      
+      if (isLimited) {
+        tableHTML += `<div class="csv-notice">⚠️ Large CSV file - showing first ${maxRows} rows only (total: ${data.length} rows)</div>`;
+      }
+
+      tableHTML += '<table class="csv-table"><thead><tr>';
+      
+      // ヘッダー行（最初の行）
+      const headerRow = limitedData[0] || [];
+      headerRow.forEach((cell, index) => {
+        tableHTML += `<th class="csv-header">${this.escapeHtml(cell || `Column ${index + 1}`)}</th>`;
+      });
+      tableHTML += '</tr></thead><tbody>';
+
+      // データ行
+      for (let i = 1; i < limitedData.length; i++) {
+        const row = limitedData[i];
+        tableHTML += `<tr class="csv-row">`;
+        for (let j = 0; j < Math.max(headerRow.length, row.length); j++) {
+          const cellValue = row[j] || '';
+          tableHTML += `<td class="csv-cell">${this.escapeHtml(cellValue)}</td>`;
+        }
+        tableHTML += '</tr>';
+      }
+
+      tableHTML += '</tbody></table></div>';
+      return tableHTML;
+    } catch (error) {
+      console.error('CSV parsing error:', error);
+      return `<div class="csv-error">Error parsing CSV: ${this.escapeHtml(error.message)}</div>`;
+    }
   }
 
   // SVGアイコン生成関数
@@ -54,6 +137,9 @@ class MireruApp {
   async init() {
     try {
       console.log('MireruApp init started');
+      
+      // Papa Parseライブラリを読み込み
+      await this.loadPapaParseLibrary();
       
       // DOM要素の取得
       this.elements = {
@@ -379,6 +465,7 @@ class MireruApp {
                    this.IMAGE_EXTENSIONS.includes(file.extension) ? '🖼️' :
                    this.VIDEO_EXTENSIONS.includes(file.extension) ? '🎬' :
                    this.PDF_EXTENSIONS.includes(file.extension) ? '📋' :
+                   this.CSV_EXTENSIONS.includes(file.extension) ? '📊' :
                    this.TEXT_EXTENSIONS.includes(file.extension) ? '📄' : '📄';
       
       fileElement.innerHTML = `
@@ -453,6 +540,31 @@ class MireruApp {
     let previewHTML = '';
     
     switch (content.type) {
+      case 'csv':
+        if (this.csvViewMode === 'table') {
+          previewHTML = `
+            <div class="csv-preview-header">
+              <div class="csv-view-controls">
+                <button class="csv-view-btn active" data-view="table">📊 Table View</button>
+                <button class="csv-view-btn" data-view="text">📄 Text View</button>
+              </div>
+            </div>
+            ${this.parseCSVToTable(content.content)}
+          `;
+        } else {
+          previewHTML = `
+            <div class="csv-preview-header">
+              <div class="csv-view-controls">
+                <button class="csv-view-btn" data-view="table">📊 Table View</button>
+                <button class="csv-view-btn active" data-view="text">📄 Text View</button>
+              </div>
+            </div>
+            ${this.isPreviewPartial ? '<div class="partial-notice">⚠️ Large file - showing first 100KB only</div>' : ''}
+            <pre class="preview-text" style="font-size: ${this.textFontSize}px;">${this.escapeHtml(content.content)}</pre>
+          `;
+        }
+        break;
+
       case 'text':
         previewHTML = `
           ${this.isPreviewPartial ? '<div class="partial-notice">⚠️ Large file - showing first 100KB only</div>' : ''}
@@ -498,10 +610,30 @@ class MireruApp {
     }
     
     this.elements.previewContent.innerHTML = previewHTML;
+    
+    // CSVビュー切り替えボタンのイベントリスナーを追加
+    if (content.type === 'csv') {
+      this.setupCSVViewControls(content);
+    }
+  }
+
+  // CSVビュー切り替えコントロールのセットアップ
+  setupCSVViewControls(content) {
+    const viewButtons = this.elements.previewContent.querySelectorAll('.csv-view-btn');
+    viewButtons.forEach(button => {
+      button.addEventListener('click', (e) => {
+        const newViewMode = e.target.getAttribute('data-view');
+        if (newViewMode !== this.csvViewMode) {
+          this.csvViewMode = newViewMode;
+          this.showPreview(content); // 再描画
+        }
+      });
+    });
   }
 
   clearPreview() {
     this.previewContent = null;
+    this.csvViewMode = 'table'; // CSV表示モードをリセット
     this.elements.previewPlaceholder.style.display = 'block';
     this.elements.previewContent.style.display = 'none';
   }

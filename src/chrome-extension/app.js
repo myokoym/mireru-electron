@@ -235,7 +235,10 @@ class MireruApp {
               <button id="up-btn" class="path-btn" title="Go up (Backspace)" style="display: none;">
                 <span id="up-icon"></span>
               </button>
-              <span class="path" id="current-path">📁 No directory selected</span>
+              <span class="current-path" id="current-path">📁 No directory selected</span>
+              <button id="copy-path-btn" class="path-btn" title="Copy path to clipboard" style="display: none;">
+                <span id="copy-path-icon">📋</span>
+              </button>
             </div>
             <div class="controls">
               <button id="directory-picker-btn" class="directory-picker-btn" style="display: none;">📂 Select Directory</button>
@@ -314,6 +317,8 @@ class MireruApp {
     this.elements.upBtn = document.getElementById('up-btn');
     this.elements.homeIcon = document.getElementById('home-icon');
     this.elements.upIcon = document.getElementById('up-icon');
+    this.elements.copyPathBtn = document.getElementById('copy-path-btn');
+    this.elements.copyPathIcon = document.getElementById('copy-path-icon');
 
     // SVGアイコンを設定
     if (this.elements.homeIcon) {
@@ -333,6 +338,9 @@ class MireruApp {
     // ナビゲーションボタン
     this.elements.homeBtn.addEventListener('click', () => this.goHome());
     this.elements.upBtn.addEventListener('click', () => this.goUp());
+    
+    // パスコピーボタン
+    this.elements.copyPathBtn.addEventListener('click', () => this.copyCurrentPath());
 
     this.elements.searchInput.addEventListener('input', (e) => {
       this.searchQuery = e.target.value;
@@ -395,6 +403,7 @@ class MireruApp {
       this.elements.directoryPickerBtn.style.display = 'none';
       this.elements.homeBtn.style.display = 'inline-block';
       this.elements.upBtn.style.display = 'inline-block';
+      this.elements.copyPathBtn.style.display = 'inline-block';
       
       await this.loadDirectory(dirPath);
       this.updateStatus('Ready');
@@ -814,6 +823,29 @@ class MireruApp {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  // パスをクリップボードにコピー
+  async copyCurrentPath() {
+    if (!this.currentPath) {
+      this.updateStatus('No directory selected');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(this.currentPath);
+      this.updateStatus('Path copied to clipboard');
+      
+      // アイコンを一時的に変更してフィードバックを提供
+      const originalIcon = this.elements.copyPathIcon.textContent;
+      this.elements.copyPathIcon.textContent = '✅';
+      setTimeout(() => {
+        this.elements.copyPathIcon.textContent = originalIcon;
+      }, 1000);
+    } catch (error) {
+      console.error('Failed to copy path:', error);
+      this.updateStatus('Failed to copy path');
+    }
   }
 }
 

@@ -1,0 +1,1241 @@
+/* Mireru Image Explorer Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 14px;
+  color: #333;
+  background: #f5f5f5;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.image-explorer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #fff;
+}
+
+/* ヘッダー */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e1e4e8;
+  min-height: 48px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.path-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.path-btn {
+  padding: 6px 8px;
+  border: 1px solid #d1d5da;
+  background: #ffffff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.path-btn:hover {
+  background: #f6f8fa;
+  border-color: #c6cbd1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.path-btn:active {
+  background: #e1e4e8;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.path-btn span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.path-btn svg {
+  display: block;
+}
+
+.current-path {
+  margin-left: 12px;
+  font-size: 13px;
+  color: #586069;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-btn {
+  padding: 6px 8px;
+  border: 1px solid #d1d5da;
+  background: #ffffff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.control-btn:hover {
+  background: #f6f8fa;
+  border-color: #c6cbd1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn:active {
+  background: #e1e4e8;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.control-btn.active {
+  background: #0366d6;
+  border-color: #0366d6;
+  color: #ffffff;
+}
+
+.control-btn.active:hover {
+  background: #0056b3;
+  border-color: #0056b3;
+}
+
+.help-text {
+  font-size: 12px;
+  color: #888;
+  margin-left: 8px;
+}
+
+/* 検索バー */
+.search-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #fafbfc;
+  border-bottom: 1px solid #e1e4e8;
+  min-height: 40px;
+}
+
+.search-input-container {
+  position: relative;
+  flex: 1;
+  max-width: 300px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  padding-right: 32px;
+  border: 1px solid #d1d5da;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #ffffff;
+  outline: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  border-color: #0366d6;
+  box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.1), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.search-clear-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px;
+  border-radius: 2px;
+  transition: background-color 0.2s;
+}
+
+.search-clear-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.search-results-count {
+  font-size: 12px;
+  color: #666;
+  margin-left: 12px;
+}
+
+/* メインコンテンツ */
+.main-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.file-list-container {
+  min-width: 200px;
+  max-width: 600px;
+  border-right: 1px solid #e0e0e0;
+  background: #fafafa;
+  overflow: hidden;
+  position: relative;
+}
+
+.file-list {
+  height: 100%;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.1s;
+}
+
+.file-item:hover {
+  background: #f0f0f0;
+}
+
+.file-item.selected {
+  background: #007acc;
+  color: white;
+}
+
+.file-icon {
+  margin-right: 8px;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.file-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.file-name {
+  flex: 1;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-size {
+  font-size: 11px;
+  color: #888;
+  margin-left: 8px;
+}
+
+.file-item.selected .file-size {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* プレビューパネル */
+.preview-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: margin-right 0.3s ease;
+}
+
+/* プレビューコンテナのmargin-rightは動的に設定されるため、このクラスは削除 */
+
+.preview-panel {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  background: #f9f9f9;
+  position: relative;
+}
+
+.preview-content {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.preview-partial-warning {
+  background: #fff3cd;
+  color: #856404;
+  padding: 8px 16px;
+  border-bottom: 1px solid #ffeaa7;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transform-origin: center;
+  transition: transform 0.2s ease;
+}
+
+.preview-text {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin: 16px;
+  max-height: calc(100vh - 200px);
+  overflow: auto;
+}
+
+.preview-text-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-text-syntax {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace !important;
+  border: none !important;
+  flex: 1;
+  margin: 0 !important;
+  padding: 16px !important;
+}
+
+/* シンタックスハイライターのスクロールバースタイル（明るいテーマ用） */
+.preview-text-syntax::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.preview-text-syntax::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.preview-text-syntax::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.preview-text-syntax::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.preview-video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.preview-hex {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 11px;
+  line-height: 1.3;
+  white-space: pre;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  margin: 16px;
+  max-height: calc(100vh - 200px);
+  overflow: auto;
+  color: #333;
+}
+
+.preview-pdf,
+.preview-unsupported {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+/* PDFプレビュー */
+.pdf-preview-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.pdf-preview-container h3 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.pdf-preview-container p {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.pdf-iframe {
+  flex: 1;
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  min-height: 400px;
+}
+
+.preview-pdf {
+  background: #ffffff;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  margin: 20px;
+}
+
+.preview-pdf-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: #f5f5f5;
+}
+
+.pdf-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-filename {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.pdf-info {
+  font-size: 12px;
+  color: #666;
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.pdf-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.pdf-icon {
+  font-size: 48px;
+}
+
+.pdf-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.pdf-type {
+  margin: 0;
+  font-size: 14px;
+  color: #007acc;
+  font-weight: 500;
+}
+
+.pdf-preview-area {
+  margin: 24px 0;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 6px;
+}
+
+.pdf-placeholder {
+  text-align: center;
+}
+
+.pdf-placeholder-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.pdf-actions {
+  margin-top: 24px;
+  text-align: left;
+  max-width: 500px;
+}
+
+.pdf-hint, .pdf-keybinds {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  border-left: 4px solid #007acc;
+}
+
+.pdf-hint p, .pdf-keybinds p {
+  margin: 4px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.pdf-hint code {
+  background: #e8e8e8;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.preview-placeholder {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.preview-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.preview-loading h3 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: #007acc;
+}
+
+.preview-loading p {
+  font-size: 14px;
+  color: #666;
+}
+
+.preview-loading kbd {
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+  color: #333;
+  display: inline-block;
+  font-size: 11px;
+  line-height: 1.4;
+  margin: 0 0.1em;
+  padding: 0.1em 0.6em;
+  text-shadow: 0 1px 0 #fff;
+}
+
+.preview-placeholder h3 {
+  font-size: 24px;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.preview-placeholder p {
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.key-hints {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.key-hints div {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #888;
+}
+
+kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  background: #f4f4f4;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 11px;
+  margin-right: 8px;
+  color: #333;
+}
+
+/* CSVプレビュー */
+.csv-preview-header {
+  padding: 12px 16px;
+  background: #f6f8fa;
+  border-bottom: 1px solid #e1e4e8;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.csv-view-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.csv-view-btn {
+  padding: 6px 12px;
+  border: 1px solid #d1d5da;
+  background: #ffffff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.csv-view-btn:hover {
+  background: #f6f8fa;
+  border-color: #c6cbd1;
+}
+
+.csv-view-btn.active {
+  background: #0366d6;
+  border-color: #0366d6;
+  color: #ffffff;
+}
+
+.csv-table-container {
+  overflow: auto;
+  max-height: calc(100vh - 300px);
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  margin: 16px;
+}
+
+.csv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  background: #ffffff;
+}
+
+.csv-header {
+  background: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #24292e;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.csv-row:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.csv-row:hover {
+  background: #e6f3ff;
+}
+
+.csv-cell {
+  border: 1px solid #e1e4e8;
+  padding: 8px 12px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #24292e;
+}
+
+.csv-cell:hover {
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: none;
+}
+
+.csv-notice {
+  background: #fff3cd;
+  color: #856404;
+  padding: 8px 16px;
+  border-bottom: 1px solid #ffeaa7;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.csv-empty {
+  padding: 40px;
+  text-align: center;
+  color: #586069;
+  font-style: italic;
+}
+
+.csv-error {
+  padding: 16px;
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  margin: 16px;
+}
+
+/* ステータスバー */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 16px;
+  background: #f8f9fa;
+  border-top: 1px solid #e0e0e0;
+  font-size: 12px;
+  color: #666;
+  height: 32px;
+  max-height: 32px;
+  overflow: hidden;
+}
+
+.status-text,
+.file-count {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-text {
+  flex: 1;
+  margin-right: 12px;
+}
+
+/* スクロールバー */
+.file-list::-webkit-scrollbar,
+.preview-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.file-list::-webkit-scrollbar-track,
+.preview-panel::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.file-list::-webkit-scrollbar-thumb,
+.preview-panel::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 4px;
+}
+
+.file-list::-webkit-scrollbar-thumb:hover,
+.preview-panel::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+  
+  .file-list-container {
+    width: 100%;
+    height: 200px;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .key-hints {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* メタ情報サイドバー */
+.metadata-sidebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 250px;
+  max-width: 500px;
+  height: 100%;
+  background: #ffffff;
+  border-left: 1px solid #e0e0e0;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+}
+
+.metadata-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.metadata-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+}
+
+.metadata-close-btn {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.metadata-close-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.metadata-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.metadata-section {
+  margin-bottom: 24px;
+}
+
+.metadata-section:last-child {
+  margin-bottom: 0;
+}
+
+.metadata-section h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.metadata-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.metadata-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.metadata-value {
+  font-size: 12px;
+  color: #333;
+  text-align: right;
+  word-break: break-word;
+  flex: 1;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+.metadata-path {
+  word-break: break-all;
+  text-align: left;
+  font-size: 11px;
+  line-height: 1.4;
+  background: #f8f9fa;
+  padding: 4px 6px;
+  border-radius: 3px;
+  margin-top: 2px;
+}
+
+/* メタ情報サイドバーのスクロールバー */
+.metadata-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.metadata-content::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.metadata-content::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 3px;
+}
+
+.metadata-content::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+/* リサイズハンドル */
+.resize-handle {
+  position: absolute;
+  z-index: 20;
+  background: transparent;
+  cursor: col-resize;
+  transition: background-color 0.2s;
+}
+
+.resize-handle:hover {
+  background: rgba(0, 122, 204, 0.2);
+}
+
+.resize-handle-right {
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  border-right: 1px solid transparent;
+}
+
+.resize-handle-right:hover {
+  border-right: 1px solid #007acc;
+}
+
+.resize-handle-left {
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  border-left: 1px solid transparent;
+}
+
+.resize-handle-left:hover {
+  border-left: 1px solid #007acc;
+}
+/* Web版 Mireru 用追加スタイル */
+
+/* ディレクトリピッカー関連 */
+.directory-picker-btn {
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: background 0.2s;
+}
+
+.directory-picker-btn:hover {
+  background: #005999;
+}
+
+.directory-picker-btn:active {
+  background: #004477;
+}
+
+.select-directory-btn {
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: inherit;
+  transition: background 0.2s;
+  margin-top: 20px;
+}
+
+.select-directory-btn:hover {
+  background: #005999;
+}
+
+/* ディレクトリ未選択状態 */
+.no-directory {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.no-directory p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+/* コントロールボタン */
+.control-btn {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 6px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 8px;
+  transition: all 0.2s;
+}
+
+.control-btn:hover {
+  background: #f0f0f0;
+  border-color: #bbb;
+}
+
+.control-btn.active {
+  background: #007acc;
+  color: white;
+  border-color: #007acc;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+  
+  .file-list {
+    max-height: 40vh;
+    min-height: 200px;
+  }
+  
+  .preview-panel {
+    min-height: 300px;
+  }
+  
+  .meta-sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    z-index: 1000;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .path-section {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 8px 12px;
+  }
+  
+  .directory-picker-btn,
+  .control-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .file-item {
+    padding: 8px 12px;
+  }
+  
+  .file-name {
+    font-size: 14px;
+  }
+  
+  .preview-panel {
+    padding: 15px;
+  }
+}
+
+/* タッチデバイス対応 */
+@media (hover: none) and (pointer: coarse) {
+  .file-item {
+    padding: 12px;
+    min-height: 44px; /* タッチターゲットサイズ */
+  }
+  
+  .control-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .search-input {
+    font-size: 16px; /* iOS での自動ズーム防止 */
+  }
+}
+
+/* ハイコントラストモード対応 */
+@media (prefers-contrast: high) {
+  .file-item.selected {
+    background: #000000;
+    color: #ffffff;
+    border: 2px solid #ffffff;
+  }
+  
+  .control-btn {
+    border-width: 2px;
+  }
+}
+
+/* ダークモード対応の準備 */
+@media (prefers-color-scheme: dark) {
+  /* 将来的にダークモード対応時に使用 */
+}
+
+/* 印刷時のスタイル */
+@media print {
+  .header,
+  .file-list,
+  .meta-sidebar,
+  .status-bar {
+    display: none;
+  }
+  
+  .preview-panel {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* フォーカス管理 */
+.file-item:focus,
+.control-btn:focus,
+.search-input:focus {
+  outline: 2px solid #007acc;
+  outline-offset: 2px;
+}
+
+/* アニメーション最適化 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* スクロールバーのカスタマイズ (Webkit) */
+.file-items::-webkit-scrollbar,
+.preview-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.file-items::-webkit-scrollbar-track,
+.preview-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.file-items::-webkit-scrollbar-thumb,
+.preview-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.file-items::-webkit-scrollbar-thumb:hover,
+.preview-content::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Web版特有のレイアウト調整 */
+.app {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* PWA インストールプロンプト */
+.install-prompt {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #007acc;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+  font-size: 14px;
+  z-index: 1000;
+  transition: transform 0.2s;
+}
+
+.install-prompt:hover {
+  transform: translateY(-2px);
+}
+
+.install-prompt .close {
+  margin-left: 10px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.install-prompt .close:hover {
+  opacity: 1;
+}

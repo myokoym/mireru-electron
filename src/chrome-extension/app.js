@@ -402,10 +402,10 @@ class MireruApp {
     });
 
     // ファイル数更新
-    if (filteredFiles.length > 0) {
+    if (filteredFiles.length > 0 && this.elements.fileCount) {
       this.elements.fileCount.style.display = 'inline';
       this.elements.fileCount.textContent = `${this.selectedIndex + 1} / ${filteredFiles.length}${this.searchQuery ? ` (filtered from ${this.files.length})` : ''}`;
-    } else {
+    } else if (this.elements.fileCount) {
       this.elements.fileCount.style.display = 'none';
     }
 
@@ -481,10 +481,10 @@ class MireruApp {
       
       case 'pdf':
         previewHTML = `
-          <div class="pdf-preview-simple" style="padding: 20px; text-align: center;">
+          <div class="pdf-preview-simple" style="padding: 20px; text-align: center; height: calc(100vh - 200px); display: flex; flex-direction: column;">
             <h3>📋 PDF Document</h3>
             <p>PDF Preview</p>
-            <iframe src="${content.content}" width="100%" height="600px" style="border: 1px solid #ddd; border-radius: 4px;"></iframe>
+            <iframe src="${content.content}" style="border: 1px solid #ddd; border-radius: 4px; flex: 1; width: 100%;"></iframe>
           </div>
         `;
         break;
@@ -653,7 +653,9 @@ class MireruApp {
 
   updateStatus(message) {
     this.status = message;
-    this.elements.statusText.textContent = message;
+    if (this.elements.statusText) {
+      this.elements.statusText.textContent = message;
+    }
   }
 
   formatFileSize(bytes) {

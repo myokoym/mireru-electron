@@ -806,14 +806,12 @@ class MireruApp {
         this.toggleMetaSidebar();
         break;
       
-      // 画像ズーム操作 & テキストサイズ制御
+      // コンテキスト別操作: 画像ズーム または テキストサイズ制御
       case '+':
       case '=':
-        console.log('+ key pressed, ctrlKey:', event.ctrlKey, 'previewContent type:', this.previewContent?.type);
-        if (event.ctrlKey && (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv'))) {
-          // テキストサイズ拡大
+        if (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv')) {
+          // テキストサイズ拡大（Ctrl不要）
           event.preventDefault();
-          console.log('Increasing text size from', this.textFontSize, 'to', Math.min(this.textFontSize + 1, 24));
           this.textFontSize = Math.min(this.textFontSize + 1, 24);
           this.updateTextFontSize();
         } else if (this.previewContent && this.previewContent.type === 'image') {
@@ -824,8 +822,8 @@ class MireruApp {
         }
         break;
       case '-':
-        if (event.ctrlKey && (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv'))) {
-          // テキストサイズ縮小
+        if (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv')) {
+          // テキストサイズ縮小（Ctrl不要）
           event.preventDefault();
           this.textFontSize = Math.max(this.textFontSize - 1, 8);
           this.updateTextFontSize();
@@ -906,7 +904,7 @@ class MireruApp {
       
       // テキストサイズリセット
       case '0':
-        if (event.ctrlKey && (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv'))) {
+        if (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv')) {
           event.preventDefault();
           this.textFontSize = 12;
           this.updateTextFontSize();
@@ -1039,13 +1037,10 @@ class MireruApp {
 
   // テキストフォントサイズを更新
   updateTextFontSize() {
-    console.log('updateTextFontSize called, previewContent type:', this.previewContent?.type, 'fontSize:', this.textFontSize);
     if (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv')) {
       // テキストとCSV両方に対応するセレクタ
       const textElements = this.elements.previewContent.querySelectorAll('.preview-text, .csv-table, .preview-hex');
-      console.log('Found text elements:', textElements.length, textElements);
       textElements.forEach(element => {
-        console.log('Updating element font size:', element.className, 'to', this.textFontSize + 'px');
         element.style.fontSize = `${this.textFontSize}px`;
       });
       this.updateStatus(`Text size: ${this.textFontSize}px`);

@@ -806,11 +806,11 @@ class MireruApp {
         this.toggleMetaSidebar();
         break;
       
-      // 画像ズーム操作 & テキストサイズ制御
+      // コンテキスト別操作: 画像ズーム または テキストサイズ制御
       case '+':
       case '=':
-        if (event.ctrlKey && (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv'))) {
-          // テキストサイズ拡大
+        if (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv')) {
+          // テキストサイズ拡大（Ctrl不要）
           event.preventDefault();
           this.textFontSize = Math.min(this.textFontSize + 1, 24);
           this.updateTextFontSize();
@@ -822,8 +822,8 @@ class MireruApp {
         }
         break;
       case '-':
-        if (event.ctrlKey && (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv'))) {
-          // テキストサイズ縮小
+        if (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv')) {
+          // テキストサイズ縮小（Ctrl不要）
           event.preventDefault();
           this.textFontSize = Math.max(this.textFontSize - 1, 8);
           this.updateTextFontSize();
@@ -904,7 +904,7 @@ class MireruApp {
       
       // テキストサイズリセット
       case '0':
-        if (event.ctrlKey && (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv'))) {
+        if (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv')) {
           event.preventDefault();
           this.textFontSize = 12;
           this.updateTextFontSize();
@@ -1038,7 +1038,8 @@ class MireruApp {
   // テキストフォントサイズを更新
   updateTextFontSize() {
     if (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv')) {
-      const textElements = this.elements.previewContent.querySelectorAll('.preview-text');
+      // テキストとCSV両方に対応するセレクタ
+      const textElements = this.elements.previewContent.querySelectorAll('.preview-text, .csv-table, .preview-hex');
       textElements.forEach(element => {
         element.style.fontSize = `${this.textFontSize}px`;
       });

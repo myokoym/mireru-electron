@@ -746,23 +746,27 @@ class MireruApp {
         event.preventDefault();
         this.selectedIndex = Math.min(this.selectedIndex + 1, filteredFiles.length - 1);
         this.updateFileList();
+        this.scrollToSelectedItem();
         break;
       case 'p':
       case 'ArrowUp':
         event.preventDefault();
         this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
         this.updateFileList();
+        this.scrollToSelectedItem();
         break;
       case 'G':
         event.preventDefault();
         this.selectedIndex = filteredFiles.length - 1;
         this.updateFileList();
+        this.scrollToSelectedItem();
         break;
       case 'g':
         if (event.ctrlKey) {
           event.preventDefault();
           this.selectedIndex = 0;
           this.updateFileList();
+          this.scrollToSelectedItem();
         }
         break;
       case 'Enter':
@@ -800,6 +804,113 @@ class MireruApp {
       case 'F1':
         event.preventDefault();
         this.toggleMetaSidebar();
+        break;
+      
+      // 画像ズーム操作 & テキストサイズ制御
+      case '+':
+      case '=':
+        console.log('+ key pressed, ctrlKey:', event.ctrlKey, 'previewContent type:', this.previewContent?.type);
+        if (event.ctrlKey && (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv'))) {
+          // テキストサイズ拡大
+          event.preventDefault();
+          console.log('Increasing text size from', this.textFontSize, 'to', Math.min(this.textFontSize + 1, 24));
+          this.textFontSize = Math.min(this.textFontSize + 1, 24);
+          this.updateTextFontSize();
+        } else if (this.previewContent && this.previewContent.type === 'image') {
+          // 画像ズームイン
+          event.preventDefault();
+          this.currentScale = Math.min(this.currentScale * 1.2, 5);
+          this.updateImageScale();
+        }
+        break;
+      case '-':
+        if (event.ctrlKey && (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv'))) {
+          // テキストサイズ縮小
+          event.preventDefault();
+          this.textFontSize = Math.max(this.textFontSize - 1, 8);
+          this.updateTextFontSize();
+        } else if (this.previewContent && this.previewContent.type === 'image') {
+          // 画像ズームアウト
+          event.preventDefault();
+          this.currentScale = Math.max(this.currentScale / 1.2, 0.1);
+          this.updateImageScale();
+        }
+        break;
+      case 'f':
+        if (this.previewContent && this.previewContent.type === 'image') {
+          event.preventDefault();
+          this.fitImageToWindow();
+        }
+        break;
+      case 'o':
+        if (this.previewContent && this.previewContent.type === 'image') {
+          event.preventDefault();
+          this.currentScale = 1;
+          this.updateImageScale();
+        }
+        break;
+      
+      // プレビュースクロール (hjkl vim風)
+      case 'h':
+        if (this.previewContent && !this.isSearchFocused) {
+          event.preventDefault();
+          const amount = event.shiftKey ? 170 : 17;
+          this.scrollPreview(-amount, 0);
+        }
+        break;
+      case 'j':
+        if (this.previewContent && !this.isSearchFocused) {
+          event.preventDefault();
+          const amount = event.shiftKey ? 170 : 17;
+          this.scrollPreview(0, amount);
+        }
+        break;
+      case 'k':
+        if (this.previewContent && !this.isSearchFocused) {
+          event.preventDefault();
+          const amount = event.shiftKey ? 170 : 17;
+          this.scrollPreview(0, -amount);
+        }
+        break;
+      case 'l':
+        if (this.previewContent && !this.isSearchFocused) {
+          event.preventDefault();
+          const amount = event.shiftKey ? 170 : 17;
+          this.scrollPreview(amount, 0);
+        }
+        break;
+      case 'H':
+        if (this.previewContent && !this.isSearchFocused) {
+          event.preventDefault();
+          this.scrollPreview(-170, 0);
+        }
+        break;
+      case 'J':
+        if (this.previewContent && !this.isSearchFocused) {
+          event.preventDefault();
+          this.scrollPreview(0, 170);
+        }
+        break;
+      case 'K':
+        if (this.previewContent && !this.isSearchFocused) {
+          event.preventDefault();
+          this.scrollPreview(0, -170);
+        }
+        break;
+      case 'L':
+        if (this.previewContent && !this.isSearchFocused) {
+          event.preventDefault();
+          this.scrollPreview(170, 0);
+        }
+        break;
+      
+      // テキストサイズリセット
+      case '0':
+        if (event.ctrlKey && (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv'))) {
+          event.preventDefault();
+          this.textFontSize = 12;
+          this.updateTextFontSize();
+        }
         break;
     }
   }
@@ -845,6 +956,99 @@ class MireruApp {
     } catch (error) {
       console.error('Failed to copy path:', error);
       this.updateStatus('Failed to copy path');
+    }
+  }
+
+  // 選択されたアイテムまでスクロール
+  scrollToSelectedItem() {
+    const selectedElement = this.elements.fileItems.querySelector('.file-item.selected');
+    if (selectedElement && this.elements.fileItems) {
+      const container = this.elements.fileItems;
+      const containerHeight = container.clientHeight;
+      const itemTop = selectedElement.offsetTop;
+      const itemHeight = selectedElement.offsetHeight;
+      const scrollTop = container.scrollTop;
+
+      // 要素が表示範囲外の場合、または中央に位置させたい場合にスクロール
+      const itemCenter = itemTop + itemHeight / 2;
+      const containerCenter = scrollTop + containerHeight / 2;
+      
+      // 上にスクロールが必要な場合
+      if (itemTop < scrollTop + 50) {
+        container.scrollTop = Math.max(0, itemTop - 50);
+      }
+      // 下にスクロールが必要な場合
+      else if (itemTop + itemHeight > scrollTop + containerHeight - 50) {
+        container.scrollTop = itemTop + itemHeight - containerHeight + 50;
+      }
+    }
+  }
+
+  // 画像のスケールを更新
+  updateImageScale() {
+    if (this.previewContent && this.previewContent.type === 'image') {
+      const img = this.elements.previewContent.querySelector('img');
+      if (img) {
+        img.style.transform = `scale(${this.currentScale})`;
+        this.updateStatus(`Image scale: ${Math.round(this.currentScale * 100)}%`);
+      }
+    }
+  }
+
+  // 画像をウィンドウにフィット
+  fitImageToWindow() {
+    if (this.previewContent && this.previewContent.type === 'image') {
+      const img = this.elements.previewContent.querySelector('img');
+      const container = this.elements.previewContent;
+      if (img && container) {
+        const containerWidth = container.clientWidth - 32; // padding考慮
+        const containerHeight = container.clientHeight - 32;
+        const imageWidth = img.naturalWidth;
+        const imageHeight = img.naturalHeight;
+        
+        const scaleX = containerWidth / imageWidth;
+        const scaleY = containerHeight / imageHeight;
+        this.currentScale = Math.min(scaleX, scaleY, 1); // 1倍を超えない
+        
+        this.updateImageScale();
+      }
+    }
+  }
+
+  // プレビューをスクロール
+  scrollPreview(deltaX, deltaY) {
+    if (this.elements.previewContent) {
+      const element = this.elements.previewContent;
+      const oldScrollLeft = element.scrollLeft;
+      const oldScrollTop = element.scrollTop;
+      
+      // メインエレメントをスクロールしてみる
+      element.scrollLeft += deltaX;
+      element.scrollTop += deltaY;
+      
+      // スクロールできない場合は子要素を試す
+      if (element.scrollLeft === oldScrollLeft && element.scrollTop === oldScrollTop && (deltaX !== 0 || deltaY !== 0)) {
+        const scrollableChild = element.querySelector('.preview-text, .csv-table-container, .preview-hex, iframe');
+        if (scrollableChild) {
+          scrollableChild.scrollLeft += deltaX;
+          scrollableChild.scrollTop += deltaY;
+        }
+      }
+    }
+  }
+
+  // テキストフォントサイズを更新
+  updateTextFontSize() {
+    console.log('updateTextFontSize called, previewContent type:', this.previewContent?.type, 'fontSize:', this.textFontSize);
+    if (this.previewContent && (this.previewContent.type === 'text' || this.previewContent.type === 'csv')) {
+      // テキストとCSV両方に対応するセレクタ
+      const textElements = this.elements.previewContent.querySelectorAll('.preview-text, .csv-table, .preview-hex');
+      console.log('Found text elements:', textElements.length, textElements);
+      textElements.forEach(element => {
+        console.log('Updating element font size:', element.className, 'to', this.textFontSize + 'px');
+        element.style.fontSize = `${this.textFontSize}px`;
+      });
+      this.updateStatus(`Text size: ${this.textFontSize}px`);
     }
   }
 }

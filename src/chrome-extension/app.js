@@ -651,6 +651,17 @@ class MireruApp {
     if (content.type === 'csv') {
       this.setupCSVViewControls(content);
     }
+    
+    // プレビュー読み込み完了後にメタサイドバーを更新
+    if (this.isMetaSidebarVisible) {
+      const filteredFiles = this.files.filter(file =>
+        this.searchQuery === '' || file.name.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+      const selectedFile = filteredFiles[this.selectedIndex];
+      if (selectedFile) {
+        this.updateMetaSidebar(selectedFile);
+      }
+    }
   }
 
   // CSVビュー切り替えコントロールのセットアップ
@@ -699,6 +710,42 @@ class MireruApp {
   }
 
   updateMetaSidebar(selectedFile) {
+    // 文字コード情報セクションの準備
+    let encodingSection = '';
+    if (selectedFile.isFile && this.previewContent && this.previewContent.type === 'text') {
+      const encoding = this.previewContent.encoding || 'UTF-8';
+      const confidence = this.previewContent.confidence || 0.5;
+      const contentLines = this.previewContent.content ? this.previewContent.content.split('\n').length : 0;
+      const contentChars = this.previewContent.content ? this.previewContent.content.length : 0;
+      const contentBytes = selectedFile.size;
+      
+      encodingSection = `
+        <div class="meta-section">
+          <h4>Content Info</h4>
+          <div class="meta-item">
+            <span class="meta-label">Encoding:</span>
+            <span class="meta-value">${encoding}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Confidence:</span>
+            <span class="meta-value">${(confidence * 100).toFixed(0)}%</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Lines:</span>
+            <span class="meta-value">${contentLines.toLocaleString()}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Characters:</span>
+            <span class="meta-value">${contentChars.toLocaleString()}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Bytes:</span>
+            <span class="meta-value">${contentBytes.toLocaleString()}</span>
+          </div>
+        </div>
+      `;
+    }
+    
     this.elements.metaContent.innerHTML = `
       <div class="meta-section">
         <h4>Basic Info</h4>
@@ -732,6 +779,7 @@ class MireruApp {
           <span class="meta-value mono">${selectedFile.path}</span>
         </div>
       </div>
+      ${encodingSection}
     `;
   }
 
@@ -767,29 +815,68 @@ class MireruApp {
       case 'n':
       case 'ArrowDown':
         event.preventDefault();
-        this.selectedIndex = Math.min(this.selectedIndex + 1, filteredFiles.length - 1);
-        this.updateFileList();
-        this.scrollToSelectedItem();
+        const newIndex = Math.min(this.selectedIndex + 1, filteredFiles.length - 1);
+        if (newIndex !== this.selectedIndex) {
+          this.selectedIndex = newIndex;
+          this.updateFileList();
+          this.scrollToSelectedItem();
+          // ファイルの場合は自動でプレビューを読み込み
+          const selectedFile = filteredFiles[this.selectedIndex];
+          if (selectedFile && selectedFile.isFile) {
+            await this.loadFilePreview(selectedFile.path);
+          } else if (selectedFile && selectedFile.isDirectory) {
+            this.clearPreview();
+          }
+        }
         break;
       case 'p':
       case 'ArrowUp':
         event.preventDefault();
-        this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
-        this.updateFileList();
-        this.scrollToSelectedItem();
+        const prevIndex = Math.max(this.selectedIndex - 1, 0);
+        if (prevIndex !== this.selectedIndex) {
+          this.selectedIndex = prevIndex;
+          this.updateFileList();
+          this.scrollToSelectedItem();
+          // ファイルの場合は自動でプレビューを読み込み
+          const selectedFile = filteredFiles[this.selectedIndex];
+          if (selectedFile && selectedFile.isFile) {
+            await this.loadFilePreview(selectedFile.path);
+          } else if (selectedFile && selectedFile.isDirectory) {
+            this.clearPreview();
+          }
+        }
         break;
       case 'G':
         event.preventDefault();
-        this.selectedIndex = filteredFiles.length - 1;
-        this.updateFileList();
-        this.scrollToSelectedItem();
+        const lastIndex = filteredFiles.length - 1;
+        if (lastIndex !== this.selectedIndex) {
+          this.selectedIndex = lastIndex;
+          this.updateFileList();
+          this.scrollToSelectedItem();
+          // ファイルの場合は自動でプレビューを読み込み
+          const selectedFile = filteredFiles[this.selectedIndex];
+          if (selectedFile && selectedFile.isFile) {
+            await this.loadFilePreview(selectedFile.path);
+          } else if (selectedFile && selectedFile.isDirectory) {
+            this.clearPreview();
+          }
+        }
         break;
       case 'g':
         if (event.ctrlKey) {
           event.preventDefault();
-          this.selectedIndex = 0;
-          this.updateFileList();
-          this.scrollToSelectedItem();
+          if (0 !== this.selectedIndex) {
+            this.selectedIndex = 0;
+            this.updateFileList();
+            this.scrollToSelectedItem();
+            // ファイルの場合は自動でプレビューを読み込み
+            const selectedFile = filteredFiles[this.selectedIndex];
+            if (selectedFile && selectedFile.isFile) {
+              await this.loadFilePreview(selectedFile.path);
+            } else if (selectedFile && selectedFile.isDirectory) {
+              this.clearPreview();
+            }
+          }
         }
         break;
       case 'Enter':

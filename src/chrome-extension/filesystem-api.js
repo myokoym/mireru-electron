@@ -178,8 +178,8 @@ const readFile = async (filePath) => {
         size: file.size,
         isPartial
       };
-    } else if (TEXT_EXTENSIONS.includes(extension) || file.size < 50 * 1024) {
-      // テキストファイル or 小さなファイル
+    } else if (TEXT_EXTENSIONS.includes(extension)) {
+      // テキストファイル
       let content;
       let isPartial = false;
       
@@ -199,17 +199,47 @@ const readFile = async (filePath) => {
         isPartial
       };
     } else {
-      // バイナリファイル - hexdump
-      const maxSize = 20 * 1024; // 20KB制限
-      const arrayBuffer = await file.slice(0, maxSize).arrayBuffer();
-      const hexContent = arrayBufferToHex(arrayBuffer);
+      // バイナリファイル - 複合判定でテキストかどうかを判定
+      const sampleSize = Math.min(512, file.size); // 最初の512バイトをサンプリング
+      const sampleBuffer = await file.slice(0, sampleSize).arrayBuffer();
+      const sampleBytes = new Uint8Array(sampleBuffer);
       
-      return {
-        type: 'hex',
-        content: hexContent,
-        size: file.size,
-        isPartial: file.size > maxSize
-      };
+      const binaryResult = isBinaryFile(sampleBytes, file.name);
+      console.log(`🔍 Binary detection for ${file.name}: ${binaryResult.reason}`);
+      
+      if (binaryResult.isBinary) {
+        // バイナリファイル - hexdump
+        const maxSize = 20 * 1024; // 20KB制限
+        const arrayBuffer = await file.slice(0, maxSize).arrayBuffer();
+        const hexContent = arrayBufferToHex(arrayBuffer);
+        
+        return {
+          type: 'hex',
+          content: hexContent,
+          size: file.size,
+          isPartial: file.size > maxSize
+        };
+      } else {
+        // テキストファイルとして処理
+        let content;
+        let isPartial = false;
+        
+        if (file.size > 1024 * 1024) {
+          // 1MB以上は部分読み込み
+          const slice = file.slice(0, 100 * 1024);
+          content = await slice.text();
+          isPartial = true;
+        } else {
+          content = await file.text();
+        }
+        
+        return {
+          type: 'text',
+          content,
+          size: file.size,
+          isPartial
+        };
+      }
     }
   } catch (error) {
     console.error('Error reading file:', error);
@@ -252,6 +282,93 @@ const copyToClipboard = async (text) => {
     document.body.removeChild(textarea);
   }
 };
+
+// 複合バイナリ判定ロジック
+function isBinaryFile(sampleBytes, fileName) {
+  // 1. null文字チェック
+  const hasNullBytes = sampleBytes.some(byte => byte === 0);
+  if (hasNullBytes) {
+    return { isBinary: true, reason: 'null bytes detected' };
+  }
+
+  // 2. ファイル拡張子による既知のバイナリ形式チェック
+  const binarySignature = hasKnownBinarySignature(sampleBytes);
+  if (binarySignature) {
+    return { isBinary: true, reason: `binary signature: ${binarySignature}` };
+  }
+
+  // 3. 制御文字の割合チェック
+  let controlChars = 0;
+  for (let i = 0; i < sampleBytes.length; i++) {
+    const byte = sampleBytes[i];
+    if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 13) {
+      controlChars++;
+    }
+  }
+  const controlRatio = controlChars / sampleBytes.length;
+  
+  // 4. エントロピー計算
+  const entropy = calculateEntropy(sampleBytes);
+  
+  // 5. 複合判定
+  const isBinary = controlRatio > 0.05 || entropy > 7.0;
+  
+  return {
+    isBinary,
+    reason: `control: ${controlRatio.toFixed(3)}, entropy: ${entropy.toFixed(2)}, threshold: ${isBinary ? 'exceeded' : 'ok'}`
+  };
+}
+
+// エントロピー計算（情報理論）
+function calculateEntropy(bytes) {
+  if (bytes.length === 0) return 0;
+  
+  // バイト値の頻度を計算
+  const freq = new Array(256).fill(0);
+  for (let i = 0; i < bytes.length; i++) {
+    freq[bytes[i]]++;
+  }
+  
+  // シャノンエントロピーを計算
+  let entropy = 0;
+  for (let i = 0; i < 256; i++) {
+    if (freq[i] > 0) {
+      const p = freq[i] / bytes.length;
+      entropy -= p * Math.log2(p);
+    }
+  }
+  
+  return entropy;
+}
+
+// 既知のバイナリファイル形式のマジックシグネチャ
+function hasKnownBinarySignature(bytes) {
+  if (bytes.length < 4) return null;
+  
+  // 一般的なバイナリファイルのシグネチャ
+  const signatures = [
+    { pattern: [0x89, 0x50, 0x4E, 0x47], type: 'PNG' },
+    { pattern: [0xFF, 0xD8, 0xFF], type: 'JPEG' },
+    { pattern: [0x47, 0x49, 0x46, 0x38], type: 'GIF' },
+    { pattern: [0x25, 0x50, 0x44, 0x46], type: 'PDF' },
+    { pattern: [0x50, 0x4B, 0x03, 0x04], type: 'ZIP' },
+    { pattern: [0x50, 0x4B, 0x05, 0x06], type: 'ZIP' },
+    { pattern: [0x50, 0x4B, 0x07, 0x08], type: 'ZIP' },
+    { pattern: [0x7F, 0x45, 0x4C, 0x46], type: 'ELF' },
+    { pattern: [0x4D, 0x5A], type: 'PE/EXE' },
+    { pattern: [0xCA, 0xFE, 0xBA, 0xBE], type: 'Java Class' },
+    { pattern: [0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70], type: 'MP4' },
+    { pattern: [0x66, 0x74, 0x79, 0x70], type: 'MP4' }
+  ];
+  
+  for (const sig of signatures) {
+    if (sig.pattern.every((byte, index) => bytes[index] === byte)) {
+      return sig.type;
+    }
+  }
+  
+  return null;
+}
 
 // ユーティリティ関数
 function arrayBufferToBase64(buffer) {

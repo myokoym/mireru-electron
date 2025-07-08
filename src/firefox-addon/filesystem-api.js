@@ -180,45 +180,15 @@ const readFile = async (filePath) => {
       };
     } else if (TEXT_EXTENSIONS.includes(extension)) {
       // テキストファイル - 文字コード検出対応
-      let content;
-      let isPartial = false;
-      let encoding = 'UTF-8';
-      let confidence = 0.5;
-      
-      if (file.size > 1024 * 1024) {
-        // 1MB以上は部分読み込み
-        const slice = file.slice(0, 100 * 1024);
-        if (window.EncodingDetector) {
-          const detector = new window.EncodingDetector();
-          const result = await detector.decodeFileContent(slice);
-          content = result.text;
-          encoding = result.encoding;
-          confidence = result.confidence;
-        } else {
-          content = await slice.text();
-        }
-        isPartial = true;
-      } else {
-        if (window.EncodingDetector) {
-          const detector = new window.EncodingDetector();
-          const result = await detector.decodeFileContent(file);
-          content = result.text;
-          encoding = result.encoding;
-          confidence = result.confidence;
-        } else {
-          content = await file.text();
-        }
-      }
-      
-      console.log(`📄 Text file encoding detection: ${encoding} (confidence: ${confidence.toFixed(2)})`);
+      const textResult = await readTextWithEncoding(file);
       
       return {
         type: 'text',
-        content,
+        content: textResult.content,
         size: file.size,
-        isPartial,
-        encoding,
-        confidence
+        isPartial: textResult.isPartial,
+        encoding: textResult.encoding,
+        confidence: textResult.confidence
       };
     } else {
       // バイナリファイル - まずテキストかどうかを判定
@@ -243,45 +213,15 @@ const readFile = async (filePath) => {
         };
       } else {
         // テキストファイルとして処理 - 文字コード検出対応
-        let content;
-        let isPartial = false;
-        let encoding = 'UTF-8';
-        let confidence = 0.5;
-        
-        if (file.size > 1024 * 1024) {
-          // 1MB以上は部分読み込み
-          const slice = file.slice(0, 100 * 1024);
-          if (window.EncodingDetector) {
-            const detector = new window.EncodingDetector();
-            const result = await detector.decodeFileContent(slice);
-            content = result.text;
-            encoding = result.encoding;
-            confidence = result.confidence;
-          } else {
-            content = await slice.text();
-          }
-          isPartial = true;
-        } else {
-          if (window.EncodingDetector) {
-            const detector = new window.EncodingDetector();
-            const result = await detector.decodeFileContent(file);
-            content = result.text;
-            encoding = result.encoding;
-            confidence = result.confidence;
-          } else {
-            content = await file.text();
-          }
-        }
-        
-        console.log(`📄 Text file encoding detection: ${encoding} (confidence: ${confidence.toFixed(2)})`);
+        const textResult = await readTextWithEncoding(file);
         
         return {
           type: 'text',
-          content,
+          content: textResult.content,
           size: file.size,
-          isPartial,
-          encoding,
-          confidence
+          isPartial: textResult.isPartial,
+          encoding: textResult.encoding,
+          confidence: textResult.confidence
         };
       }
     }
@@ -326,6 +266,48 @@ const copyToClipboard = async (text) => {
     document.body.removeChild(textarea);
   }
 };
+
+// 文字コード検出付きテキスト読み込み関数
+async function readTextWithEncoding(file) {
+  let content;
+  let isPartial = false;
+  let encoding = 'UTF-8';
+  let confidence = 0.5;
+  
+  if (file.size > 1024 * 1024) {
+    // 1MB以上は部分読み込み
+    const slice = file.slice(0, 100 * 1024);
+    if (window.EncodingDetector) {
+      const detector = new window.EncodingDetector();
+      const result = await detector.decodeFileContent(slice);
+      content = result.text;
+      encoding = result.encoding;
+      confidence = result.confidence;
+    } else {
+      content = await slice.text();
+    }
+    isPartial = true;
+  } else {
+    if (window.EncodingDetector) {
+      const detector = new window.EncodingDetector();
+      const result = await detector.decodeFileContent(file);
+      content = result.text;
+      encoding = result.encoding;
+      confidence = result.confidence;
+    } else {
+      content = await file.text();
+    }
+  }
+  
+  console.log(`📄 Text file encoding detection: ${encoding} (confidence: ${confidence.toFixed(2)})`);
+  
+  return {
+    content,
+    isPartial,
+    encoding,
+    confidence
+  };
+}
 
 // 複合バイナリ判定ロジック
 function isBinaryFile(sampleBytes, fileName) {

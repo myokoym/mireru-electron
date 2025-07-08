@@ -709,6 +709,23 @@ class MireruApp {
     }
   }
 
+  // ファイル選択更新の共通処理
+  async updateFileSelection(newIndex, filteredFiles) {
+    if (newIndex !== this.selectedIndex) {
+      this.selectedIndex = newIndex;
+      this.updateFileList();
+      this.scrollToSelectedItem();
+      
+      // ファイルの場合は自動でプレビューを読み込み
+      const selectedFile = filteredFiles[this.selectedIndex];
+      if (selectedFile && selectedFile.isFile) {
+        await this.loadFilePreview(selectedFile.path);
+      } else if (selectedFile && selectedFile.isDirectory) {
+        this.clearPreview();
+      }
+    }
+  }
+
   updateMetaSidebar(selectedFile) {
     // 文字コード情報セクションの準備
     let encodingSection = '';
@@ -815,68 +832,30 @@ class MireruApp {
       case 'n':
       case 'ArrowDown':
         event.preventDefault();
-        const newIndex = Math.min(this.selectedIndex + 1, filteredFiles.length - 1);
-        if (newIndex !== this.selectedIndex) {
-          this.selectedIndex = newIndex;
-          this.updateFileList();
-          this.scrollToSelectedItem();
-          // ファイルの場合は自動でプレビューを読み込み
-          const selectedFile = filteredFiles[this.selectedIndex];
-          if (selectedFile && selectedFile.isFile) {
-            await this.loadFilePreview(selectedFile.path);
-          } else if (selectedFile && selectedFile.isDirectory) {
-            this.clearPreview();
-          }
-        }
+        await this.updateFileSelection(
+          Math.min(this.selectedIndex + 1, filteredFiles.length - 1),
+          filteredFiles
+        );
         break;
       case 'p':
       case 'ArrowUp':
         event.preventDefault();
-        const prevIndex = Math.max(this.selectedIndex - 1, 0);
-        if (prevIndex !== this.selectedIndex) {
-          this.selectedIndex = prevIndex;
-          this.updateFileList();
-          this.scrollToSelectedItem();
-          // ファイルの場合は自動でプレビューを読み込み
-          const selectedFile = filteredFiles[this.selectedIndex];
-          if (selectedFile && selectedFile.isFile) {
-            await this.loadFilePreview(selectedFile.path);
-          } else if (selectedFile && selectedFile.isDirectory) {
-            this.clearPreview();
-          }
-        }
+        await this.updateFileSelection(
+          Math.max(this.selectedIndex - 1, 0),
+          filteredFiles
+        );
         break;
       case 'G':
         event.preventDefault();
-        const lastIndex = filteredFiles.length - 1;
-        if (lastIndex !== this.selectedIndex) {
-          this.selectedIndex = lastIndex;
-          this.updateFileList();
-          this.scrollToSelectedItem();
-          // ファイルの場合は自動でプレビューを読み込み
-          const selectedFile = filteredFiles[this.selectedIndex];
-          if (selectedFile && selectedFile.isFile) {
-            await this.loadFilePreview(selectedFile.path);
-          } else if (selectedFile && selectedFile.isDirectory) {
-            this.clearPreview();
-          }
-        }
+        await this.updateFileSelection(
+          filteredFiles.length - 1,
+          filteredFiles
+        );
         break;
       case 'g':
         if (event.ctrlKey) {
           event.preventDefault();
-          if (0 !== this.selectedIndex) {
-            this.selectedIndex = 0;
-            this.updateFileList();
-            this.scrollToSelectedItem();
-            // ファイルの場合は自動でプレビューを読み込み
-            const selectedFile = filteredFiles[this.selectedIndex];
-            if (selectedFile && selectedFile.isFile) {
-              await this.loadFilePreview(selectedFile.path);
-            } else if (selectedFile && selectedFile.isDirectory) {
-              this.clearPreview();
-            }
-          }
+          await this.updateFileSelection(0, filteredFiles);
         }
         break;
       case 'Enter':

@@ -579,10 +579,33 @@ class MireruApp {
         break;
 
       case 'text':
-        previewHTML = `
-          ${this.isPreviewPartial ? '<div class="partial-notice">⚠️ Large file - showing first 100KB only</div>' : ''}
-          <pre class="preview-text" style="font-size: ${this.textFontSize}px;">${this.escapeHtml(content.content)}</pre>
-        `;
+        // シンタックスハイライトを適用
+        if (!window.SyntaxHighlighter) {
+          previewHTML = `
+            ${this.isPreviewPartial ? '<div class="preview-partial-warning">⚠️ Large file - showing first 100KB only</div>' : ''}
+            <pre class="preview-text" style="font-size: ${this.textFontSize}px;">${this.escapeHtml(content.content)}</pre>
+          `;
+          break;
+        }
+        
+        const highlighter = new window.SyntaxHighlighter();
+        const currentFile = this.files[this.selectedIndex];
+        const language = currentFile ? highlighter.detectLanguage(currentFile.name) : null;
+        
+        if (language) {
+          const highlighted = highlighter.highlightWithLineNumbers(content.content, language);
+          previewHTML = `
+            ${this.isPreviewPartial ? '<div class="preview-partial-warning">⚠️ Large file - showing first 100KB only</div>' : ''}
+            <div class="preview-text-syntax" style="font-size: ${this.textFontSize}px;">
+              <div class="hljs-code-container">${highlighted}</div>
+            </div>
+          `;
+        } else {
+          previewHTML = `
+            ${this.isPreviewPartial ? '<div class="preview-partial-warning">⚠️ Large file - showing first 100KB only</div>' : ''}
+            <pre class="preview-text" style="font-size: ${this.textFontSize}px;">${this.escapeHtml(content.content)}</pre>
+          `;
+        }
         break;
       
       case 'image':
@@ -1034,7 +1057,7 @@ class MireruApp {
       
       // スクロールできない場合は子要素を試す
       if (element.scrollLeft === oldScrollLeft && element.scrollTop === oldScrollTop && (deltaX !== 0 || deltaY !== 0)) {
-        const scrollableChild = element.querySelector('.preview-text, .csv-table-container, .preview-hex, iframe');
+        const scrollableChild = element.querySelector('.preview-text, .csv-table-container, .preview-hex, iframe, .hljs-code-container');
         if (scrollableChild) {
           scrollableChild.scrollLeft += deltaX;
           scrollableChild.scrollTop += deltaY;

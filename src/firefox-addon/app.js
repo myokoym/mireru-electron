@@ -852,53 +852,61 @@ class MireruApp {
       case 'h':
         if (this.previewContent && !this.isSearchFocused) {
           event.preventDefault();
-          const amount = event.shiftKey ? 170 : 17;
+          const amount = event.shiftKey ? 
+            Math.floor(this.elements.previewContent.clientWidth * 0.8) : 17;
           this.scrollPreview(-amount, 0);
         }
         break;
       case 'j':
         if (this.previewContent && !this.isSearchFocused) {
           event.preventDefault();
-          const amount = event.shiftKey ? 170 : 17;
+          const amount = event.shiftKey ? 
+            Math.floor(this.elements.previewContent.clientHeight * 0.8) : 17;
           this.scrollPreview(0, amount);
         }
         break;
       case 'k':
         if (this.previewContent && !this.isSearchFocused) {
           event.preventDefault();
-          const amount = event.shiftKey ? 170 : 17;
+          const amount = event.shiftKey ? 
+            Math.floor(this.elements.previewContent.clientHeight * 0.8) : 17;
           this.scrollPreview(0, -amount);
         }
         break;
       case 'l':
         if (this.previewContent && !this.isSearchFocused) {
           event.preventDefault();
-          const amount = event.shiftKey ? 170 : 17;
+          const amount = event.shiftKey ? 
+            Math.floor(this.elements.previewContent.clientWidth * 0.8) : 17;
           this.scrollPreview(amount, 0);
         }
         break;
       case 'H':
         if (this.previewContent && !this.isSearchFocused) {
           event.preventDefault();
-          this.scrollPreview(-170, 0);
+          const pageWidth = Math.floor(this.elements.previewContent.clientWidth * 0.8);
+          this.scrollPreview(-pageWidth, 0);
         }
         break;
       case 'J':
         if (this.previewContent && !this.isSearchFocused) {
           event.preventDefault();
-          this.scrollPreview(0, 170);
+          const pageHeight = Math.floor(this.elements.previewContent.clientHeight * 0.8);
+          this.scrollPreview(0, pageHeight);
         }
         break;
       case 'K':
         if (this.previewContent && !this.isSearchFocused) {
           event.preventDefault();
-          this.scrollPreview(0, -170);
+          const pageHeight = Math.floor(this.elements.previewContent.clientHeight * 0.8);
+          this.scrollPreview(0, -pageHeight);
         }
         break;
       case 'L':
         if (this.previewContent && !this.isSearchFocused) {
           event.preventDefault();
-          this.scrollPreview(170, 0);
+          const pageWidth = Math.floor(this.elements.previewContent.clientWidth * 0.8);
+          this.scrollPreview(pageWidth, 0);
         }
         break;
       

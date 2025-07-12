@@ -182,7 +182,7 @@ function isTextFile(buffer: Buffer, extension: string): boolean {
   return controlRatio < 0.2;
 }
 
-ipcMain.handle('read-file', async (event, filePath: string) => {
+ipcMain.handle('read-file', async (event, filePath: string, viewMode: string = 'auto') => {
   try {
     const stat = fs.statSync(filePath);
     const ext = path.extname(filePath).toLowerCase();
@@ -192,6 +192,49 @@ ipcMain.handle('read-file', async (event, filePath: string) => {
       throw new Error('File too large');
     }
     
+    // Handle manual view mode overrides
+    if (viewMode === 'binary') {
+      // Force binary (hex) view for any file
+      const buffer = fs.readFileSync(filePath, { encoding: null, flag: 'r' });
+      const limitedBuffer = buffer.subarray(0, 20 * 1024);
+      const hexLines = [];
+      
+      for (let i = 0; i < limitedBuffer.length; i += 16) {
+        const chunk = limitedBuffer.subarray(i, Math.min(i + 16, limitedBuffer.length));
+        const offset = i.toString(16).padStart(8, '0');
+        const hex = Array.from(chunk).map(b => b.toString(16).padStart(2, '0')).join(' ');
+        const ascii = Array.from(chunk).map(b => (b >= 32 && b <= 126) ? String.fromCharCode(b) : '.').join('');
+        hexLines.push(`${offset}  ${hex.padEnd(47, ' ')}  |${ascii}|`);
+      }
+      
+      return { type: 'hex', content: hexLines.join('\n'), size: stat.size };
+    }
+    
+    if (viewMode === 'text') {
+      // Force text view for any file (except images/videos/PDFs that are better shown in their native format)
+      if (!['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg', '.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv', '.pdf'].includes(ext)) {
+        try {
+          return await readTextFileOptimized(filePath, stat.size);
+        } catch (error) {
+          // If text reading fails, fall back to hex
+          const buffer = fs.readFileSync(filePath, { encoding: null, flag: 'r' });
+          const limitedBuffer = buffer.subarray(0, 20 * 1024);
+          const hexLines = [];
+          
+          for (let i = 0; i < limitedBuffer.length; i += 16) {
+            const chunk = limitedBuffer.subarray(i, Math.min(i + 16, limitedBuffer.length));
+            const offset = i.toString(16).padStart(8, '0');
+            const hex = Array.from(chunk).map(b => b.toString(16).padStart(2, '0')).join(' ');
+            const ascii = Array.from(chunk).map(b => (b >= 32 && b <= 126) ? String.fromCharCode(b) : '.').join('');
+            hexLines.push(`${offset}  ${hex.padEnd(47, ' ')}  |${ascii}|`);
+          }
+          
+          return { type: 'hex', content: hexLines.join('\n'), size: stat.size };
+        }
+      }
+    }
+    
+    // Auto mode (default behavior)
     if (['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'].includes(ext)) {
       // Image file
       const buffer = fs.readFileSync(filePath);

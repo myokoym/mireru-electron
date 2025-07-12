@@ -63,6 +63,8 @@ interface FileResult {
   isPartial?: boolean;
 }
 
+type ViewMode = 'auto' | 'text' | 'binary';
+
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
 const TEXT_EXTENSIONS = ['.txt', '.md', '.js', '.jsx', '.ts', '.tsx', '.json', '.html', '.css', '.xml', '.log', '.py', '.rb', '.php', '.java', '.c', '.cpp', '.h', '.sh', '.yaml', '.yml'];
 const VIDEO_EXTENSIONS = ['.mp4', '.avi', '.mov', '.webm', '.mkv', '.flv'];
@@ -306,7 +308,7 @@ function FileIcon({
     };
     
     updateIcon();
-  }, [item.path, item.extension, item.isDirectory]);
+  }, [item.path, item.extension, item.isDirectory, viewMode]);
   
   return (
     <span 
@@ -361,6 +363,9 @@ function ImageExplorer() {
   const [metadataWidth, setMetadataWidth] = useState<number>(300);
   const [isResizingFileList, setIsResizingFileList] = useState<boolean>(false);
   const [isResizingMetadata, setIsResizingMetadata] = useState<boolean>(false);
+
+  // Binary/Text表示モード切り替え
+  const [viewMode, setViewMode] = useState<ViewMode>('auto');
 
 
   // ディレクトリとすべてのファイルを表示（バイナリファイルも含む）+ 検索フィルタリング
@@ -489,13 +494,16 @@ function ImageExplorer() {
       setIsLoadingFile(true);
       setStatus('Loading preview...');
       
+      // View mode indicator for status messages
+      const viewModeText = viewMode !== 'auto' ? ` [${viewMode.toUpperCase()}]` : '';
+      
       // 既存のタイムアウトをクリア
       if (syntaxHighlightTimeout) {
         clearTimeout(syntaxHighlightTimeout);
         setSyntaxHighlightTimeout(null);
       }
       
-      const result: FileResult = await window.electronAPI.readFile(file.path);
+      const result: FileResult = await window.electronAPI.readFile(file.path, viewMode);
       
       // キャンセルされた場合は何もしない
       if (abortController.signal.aborted) {
@@ -525,11 +533,11 @@ function ImageExplorer() {
           // 500ms後にシンタックスハイライトを有効化
           const timeout = setTimeout(() => {
             setShowSyntaxHighlight(true);
-            setStatus(`Preview: ${file.name} (syntax highlighting applied)`);
+            setStatus(`Preview: ${file.name} (syntax highlighting applied)${viewModeText}`);
           }, 500);
           
           setSyntaxHighlightTimeout(timeout);
-          setStatus(`Preview: ${file.name} (large file - applying syntax highlighting...)`);
+          setStatus(`Preview: ${file.name} (large file - applying syntax highlighting...)${viewModeText}`);
         } else {
           setIsLargeFile(false);
           setShowSyntaxHighlight(true);
@@ -541,9 +549,9 @@ function ImageExplorer() {
       
       // 部分読み込みの場合はステータスに表示
       if (result.isPartial) {
-        setStatus(`Preview: ${file.name} (partial - showing first ${(result.size / (1024 * 1024)).toFixed(1)}MB)`);
+        setStatus(`Preview: ${file.name} (partial - showing first ${(result.size / (1024 * 1024)).toFixed(1)}MB)${viewModeText}`);
       } else if (!isLargeFile || result.type !== 'text') {
-        setStatus(`Preview: ${file.name}`);
+        setStatus(`Preview: ${file.name}${viewModeText}`);
       }
     } catch (error) {
       setPreviewContent(null);
@@ -558,7 +566,7 @@ function ImageExplorer() {
       }
       setStatus(`Preview error: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }, [syntaxHighlightTimeout, loadingAbortController]);
+  }, [syntaxHighlightTimeout, loadingAbortController, viewMode]);
 
   // ファイルアイコンの取得
   const getFileIcon = (extension: string, filePath?: string): string => {
@@ -630,6 +638,25 @@ function ImageExplorer() {
   const clearSearch = () => {
     setSearchQuery('');
     setSelectedIndex(0);
+  };
+
+  // Binary/Text表示モードを切り替え
+  const cycleViewMode = () => {
+    setViewMode(prev => {
+      const modes: ViewMode[] = ['auto', 'text', 'binary'];
+      const currentIndex = modes.indexOf(prev);
+      const nextMode = modes[(currentIndex + 1) % modes.length];
+      
+      // ファイルタイプキャッシュをクリア（表示モードが変わったため）
+      setFileTypeCache(new Map());
+      
+      // 現在選択されているファイルを再プレビュー
+      if (displayItems[selectedIndex] && displayItems[selectedIndex].isFile) {
+        setTimeout(() => previewFile(displayItems[selectedIndex]), 0);
+      }
+      
+      return nextMode;
+    });
   };
 
   // 選択項目をビューに表示する
@@ -856,6 +883,11 @@ function ImageExplorer() {
         setShowMetadataSidebar(prev => !prev);
         break;
 
+      case 'b':
+        event.preventDefault();
+        cycleViewMode();
+        break;
+
       case 'Escape':
         event.preventDefault();
         if (searchQuery) {
@@ -872,7 +904,7 @@ function ImageExplorer() {
         }
         break;
     }
-  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused, textFontSize, showMetadataSidebar, isLoadingFile, loadingAbortController]);
+  }, [displayItems, selectedIndex, copyCurrentFilePath, clearSearch, searchQuery, isSearchFocused, textFontSize, showMetadataSidebar, isLoadingFile, loadingAbortController, cycleViewMode]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
@@ -1001,7 +1033,7 @@ function ImageExplorer() {
     
     try {
       // メインプロセスで判定
-      const result = await window.electronAPI.readFile(filePath);
+      const result = await window.electronAPI.readFile(filePath, viewMode);
       const detectedType = result.type === 'text' ? 'text' : 'binary';
       
       // キャッシュに保存
@@ -1403,6 +1435,7 @@ function ImageExplorer() {
                   <div><kbd>f</kbd> Fit to window</div>
                   <div><kbd>o</kbd> Original size</div>
                   <div><kbd>i/F1</kbd> Toggle metadata</div>
+                  <div><kbd>b</kbd> Toggle view mode (auto/text/binary)</div>
                   <div><kbd>Backspace</kbd> Go up</div>
                   <div><kbd>Home</kbd> Go home</div>
                 </div>

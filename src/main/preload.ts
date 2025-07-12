@@ -28,8 +28,8 @@ const electronHandler = {
 const electronAPI = {
   getDirectoryContents: (dirPath: string) => 
     ipcRenderer.invoke('get-directory-contents', dirPath),
-  readFile: (filePath: string) => 
-    ipcRenderer.invoke('read-file', filePath),
+  readFile: (filePath: string, viewMode?: string) => 
+    ipcRenderer.invoke('read-file', filePath, viewMode),
   getHomeDirectory: () => 
     ipcRenderer.invoke('get-home-directory'),
   getInitialDirectory: () => 
